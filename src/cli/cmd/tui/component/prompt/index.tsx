@@ -1,5 +1,5 @@
 import { BoxRenderable, TextareaRenderable, MouseEvent, PasteEvent, t, dim, fg } from "@opentui/core"
-import { createEffect, createMemo, type JSX, onMount, createSignal, onCleanup, on, Show, Switch, Match } from "solid-js"
+import { createEffect, createMemo, type JSX, onMount, createSignal, onCleanup, on, Show, Switch, Match, For } from "solid-js"
 import "opentui-spinner/solid"
 import path from "path"
 import { Filesystem } from "@/util/filesystem"
@@ -998,18 +998,34 @@ export function Prompt(props: PromptProps) {
               syntaxStyle={syntax()}
             />
             <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1}>
-              <text fg={highlight()}>
-                {store.mode === "shell" ? "Shell" : Locale.titlecase(local.agent.current().name)}{" "}
-              </text>
-              <Show when={store.mode === "normal"}>
-                <Show
-                  when={!Provider.HIDE_MODEL_SELECTOR}
-                  fallback={
-                    <text flexShrink={0} fg={keybind.leader ? theme.textMuted : theme.text}>
-                      Definable Agent
-                    </text>
-                  }
-                >
+              <Show
+                when={store.mode === "normal"}
+                fallback={
+                  <text fg={highlight()}>Shell</text>
+                }
+              >
+                <box flexDirection="row">
+                  <For each={local.agent.list()}>
+                    {(agent, index) => {
+                      const isActive = createMemo(() => local.agent.current().name === agent.name)
+                      const color = createMemo(() => local.agent.color(agent.name))
+                      return (
+                        <>
+                          <text
+                            fg={isActive() ? color() : theme.textMuted}
+                            onMouseUp={() => local.agent.set(agent.name)}
+                          >
+                            {Locale.titlecase(agent.name)}
+                          </text>
+                          <Show when={index() < local.agent.list().length - 1}>
+                            <text fg={theme.textMuted}> / </text>
+                          </Show>
+                        </>
+                      )
+                    }}
+                  </For>
+                </box>
+                <Show when={!Provider.HIDE_MODEL_SELECTOR}>
                   <box flexDirection="row" gap={1}>
                     <text flexShrink={0} fg={keybind.leader ? theme.textMuted : theme.text}>
                       {local.model.parsed().model}

@@ -1,0 +1,44 @@
+{
+  "name": "definable",
+  "displayName": "Definable",
+  "description": "AI-powered coding assistant — open Definable CLI as a tab in your editor",
+  "version": "0.0.1",
+  "publisher": "definable-ai",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["AI", "Programming Languages", "Other"],
+  "keywords": ["ai", "coding", "assistant", "definable", "cli"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "icon": "icon.png",
+  "contributes": {
+    "commands": [
+      {
+        "command": "definable.open",
+        "title": "Definable: Open"
+      },
+      {
+        "command": "definable.openInTab",
+        "title": "Definable: Open in Editor Tab"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "definable.open",
+        "key": "ctrl+shift+d",
+        "mac": "cmd+shift+d"
+      }
+    ]
+  },
+  "scripts": {
+    "dev": "tsc -w -p tsconfig.json",
+    "build": "tsc -p tsconfig.json",
+    "package": "npm run build && vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0"
+  }
+}

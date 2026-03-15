@@ -262,6 +262,56 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                 </Show>
               )
             })()}
+            {(() => {
+              const subagents = createMemo(() =>
+                sync.data.session
+                  .filter((x) => x.parentID === props.sessionID)
+                  .toSorted((a, b) => b.time.updated - a.time.updated),
+              )
+              return (
+                <Show when={subagents().length > 0}>
+                  <box>
+                    <text fg={theme.text}>
+                      <b>Subagents</b>
+                    </text>
+                    <For each={subagents()}>
+                      {(item) => {
+                        const [hover, setHover] = createSignal(false)
+                        const status = createMemo(() => sync.data.session_status[item.id])
+                        const isBusy = createMemo(() => status()?.type === "busy")
+                        return (
+                          <box
+                            flexDirection="row"
+                            gap={1}
+                            onMouseOver={() => setHover(true)}
+                            onMouseOut={() => setHover(false)}
+                            onMouseUp={() => {
+                              route.navigate({
+                                type: "session",
+                                sessionID: item.id,
+                              })
+                            }}
+                          >
+                            <text
+                              flexShrink={0}
+                              fg={isBusy() ? theme.warning : theme.success}
+                            >
+                              {isBusy() ? "●" : "•"}
+                            </text>
+                            <text
+                              fg={hover() ? theme.text : theme.textMuted}
+                              wrapMode="none"
+                            >
+                              {Locale.truncate(item.title, 30)}
+                            </text>
+                          </box>
+                        )
+                      }}
+                    </For>
+                  </box>
+                </Show>
+              )
+            })()}
             <Show when={todo().length > 0 && todo().some((t) => t.status !== "completed")}>
               <box>
                 <box

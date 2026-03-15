@@ -1,6 +1,7 @@
 import path from "path"
 import matter from "gray-matter"
 import type { Skill } from "./skill"
+import { builtinAssets } from "./builtin-assets"
 
 // Embedded at compile time via Bun's text imports
 // -- Design & Frontend --
@@ -57,6 +58,7 @@ export namespace Builtin {
       location: path.join(BUILTIN_DIR, name, "SKILL.md"),
       content: md.content,
       builtin: true,
+      assets: builtinAssets[name],
     }
   }
 

@@ -43,13 +43,13 @@ const migrations = await Promise.all(
     const match = /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/.exec(name)
     const timestamp = match
       ? Date.UTC(
-          Number(match[1]),
-          Number(match[2]) - 1,
-          Number(match[3]),
-          Number(match[4]),
-          Number(match[5]),
-          Number(match[6]),
-        )
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+        Number(match[4]),
+        Number(match[5]),
+        Number(match[6]),
+      )
       : 0
     return { sql, timestamp }
   }),
@@ -66,78 +66,78 @@ const allTargets: {
   abi?: "musl"
   avx2?: false
 }[] = [
-  {
-    os: "linux",
-    arch: "arm64",
-  },
-  {
-    os: "linux",
-    arch: "x64",
-  },
-  {
-    os: "linux",
-    arch: "x64",
-    avx2: false,
-  },
-  {
-    os: "linux",
-    arch: "arm64",
-    abi: "musl",
-  },
-  {
-    os: "linux",
-    arch: "x64",
-    abi: "musl",
-  },
-  {
-    os: "linux",
-    arch: "x64",
-    abi: "musl",
-    avx2: false,
-  },
-  {
-    os: "darwin",
-    arch: "arm64",
-  },
-  {
-    os: "darwin",
-    arch: "x64",
-  },
-  {
-    os: "darwin",
-    arch: "x64",
-    avx2: false,
-  },
-  {
-    os: "win32",
-    arch: "x64",
-  },
-  {
-    os: "win32",
-    arch: "x64",
-    avx2: false,
-  },
-]
+    {
+      os: "linux",
+      arch: "arm64",
+    },
+    {
+      os: "linux",
+      arch: "x64",
+    },
+    {
+      os: "linux",
+      arch: "x64",
+      avx2: false,
+    },
+    {
+      os: "linux",
+      arch: "arm64",
+      abi: "musl",
+    },
+    {
+      os: "linux",
+      arch: "x64",
+      abi: "musl",
+    },
+    {
+      os: "linux",
+      arch: "x64",
+      abi: "musl",
+      avx2: false,
+    },
+    {
+      os: "darwin",
+      arch: "arm64",
+    },
+    {
+      os: "darwin",
+      arch: "x64",
+    },
+    {
+      os: "darwin",
+      arch: "x64",
+      avx2: false,
+    },
+    {
+      os: "win32",
+      arch: "x64",
+    },
+    {
+      os: "win32",
+      arch: "x64",
+      avx2: false,
+    },
+  ]
 
 const targets = singleFlag
   ? allTargets.filter((item) => {
-      if (item.os !== process.platform || item.arch !== process.arch) {
-        return false
-      }
+    if (item.os !== process.platform || item.arch !== process.arch) {
+      return false
+    }
 
-      // When building for the current platform, prefer a single native binary by default.
-      // Baseline binaries require additional Bun artifacts and can be flaky to download.
-      if (item.avx2 === false) {
-        return baselineFlag
-      }
+    // When building for the current platform, prefer a single native binary by default.
+    // Baseline binaries require additional Bun artifacts and can be flaky to download.
+    if (item.avx2 === false) {
+      return baselineFlag
+    }
 
-      // also skip abi-specific builds for the same reason
-      if (item.abi !== undefined) {
-        return false
-      }
+    // also skip abi-specific builds for the same reason
+    if (item.abi !== undefined) {
+      return false
+    }
 
-      return true
-    })
+    return true
+  })
   : allTargets
 
 await $`rm -rf dist`
@@ -196,7 +196,6 @@ for (const item of targets) {
 
   await $`rm -rf ./dist/${name}/bin/tui`
   await $`rm -f ./dist/${name}/bin/*.map`
-  await $`chmod +x ./dist/${name}/bin/def`
   await Bun.file(`dist/${name}/package.json`).write(
     JSON.stringify(
       {

@@ -1,5 +1,5 @@
 import { useSync } from "@tui/context/sync"
-import { createMemo, For, Show, Switch, Match } from "solid-js"
+import { createMemo, createSignal, For, Show, Switch, Match } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useTheme } from "../../context/theme"
 import { Locale } from "@/util/locale"
@@ -8,6 +8,7 @@ import type { AssistantMessage } from "@definable-ai/sdk/v2"
 import { Global } from "@/global"
 import { Installation } from "@/installation"
 import { useKeybind } from "../../context/keybind"
+import { useRoute } from "../../context/route"
 import { useDirectory } from "../../context/directory"
 import { useKV } from "../../context/kv"
 import { TodoItem } from "../../component/todo-item"
@@ -16,6 +17,7 @@ import { Provider } from "@/provider/provider"
 export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const sync = useSync()
   const { theme } = useTheme()
+  const route = useRoute()
   const session = createMemo(() => sync.session.get(props.sessionID)!)
   const diff = createMemo(() => sync.data.session_diff[props.sessionID] ?? [])
   const todo = createMemo(() => sync.data.todo[props.sessionID] ?? [])
@@ -213,6 +215,53 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                 </For>
               </Show>
             </box>
+            {(() => {
+              const recentSessions = createMemo(() =>
+                sync.data.session
+                  .filter((x) => x.parentID === undefined && x.id !== props.sessionID)
+                  .toSorted((a, b) => b.time.updated - a.time.updated)
+                  .slice(0, 5),
+              )
+              return (
+                <Show when={recentSessions().length > 0}>
+                  <box>
+                    <text fg={theme.text}>
+                      <b>Sessions</b>
+                    </text>
+                    <For each={recentSessions()}>
+                      {(item) => {
+                        const [hover, setHover] = createSignal(false)
+                        return (
+                          <box
+                            flexDirection="row"
+                            justifyContent="space-between"
+                            gap={1}
+                            onMouseOver={() => setHover(true)}
+                            onMouseOut={() => setHover(false)}
+                            onMouseUp={() => {
+                              route.navigate({
+                                type: "session",
+                                sessionID: item.id,
+                              })
+                            }}
+                          >
+                            <text
+                              fg={hover() ? theme.text : theme.textMuted}
+                              wrapMode="none"
+                            >
+                              {Locale.truncate(item.title, 26)}
+                            </text>
+                            <text fg={theme.textMuted} flexShrink={0}>
+                              {Locale.time(item.time.updated)}
+                            </text>
+                          </box>
+                        )
+                      }}
+                    </For>
+                  </box>
+                </Show>
+              )
+            })()}
             <Show when={todo().length > 0 && todo().some((t) => t.status !== "completed")}>
               <box>
                 <box

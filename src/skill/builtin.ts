@@ -1,9 +1,12 @@
+import path from "path"
 import matter from "gray-matter"
 import type { Skill } from "./skill"
 
 // Embedded at compile time via Bun's text imports
 import frontendDesignRaw from "./builtin/frontend-design/SKILL.md" with { type: "text" }
 import webappTestingRaw from "./builtin/webapp-testing/SKILL.md" with { type: "text" }
+import reactBestPracticesRaw from "./builtin/react-best-practices/SKILL.md" with { type: "text" }
+import webDesignGuidelinesRaw from "./builtin/web-design-guidelines/SKILL.md" with { type: "text" }
 
 /**
  * Built-in skills that are always available, even in distributed builds.
@@ -14,14 +17,17 @@ import webappTestingRaw from "./builtin/webapp-testing/SKILL.md" with { type: "t
  *   3. Add the raw string to BUILTIN_RAW below
  */
 export namespace Builtin {
-  const BUILTIN_RAW = [frontendDesignRaw, webappTestingRaw]
+  const BUILTIN_DIR = path.join(import.meta.dirname, "builtin")
+
+  const BUILTIN_RAW = [frontendDesignRaw, webappTestingRaw, reactBestPracticesRaw, webDesignGuidelinesRaw]
 
   function parse(raw: string): Skill.Info {
     const md = matter(raw)
+    const name = md.data.name as string
     return {
-      name: md.data.name,
+      name,
       description: md.data.description,
-      location: `builtin://${md.data.name}`,
+      location: path.join(BUILTIN_DIR, name, "SKILL.md"),
       content: md.content,
     }
   }

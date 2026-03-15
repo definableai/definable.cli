@@ -5,7 +5,7 @@ import {
   formatPart,
   formatTranscript,
 } from "../../../src/cli/cmd/tui/util/transcript"
-import type { AssistantMessage, Part, UserMessage } from "@definable-ai/sdk/v2"
+import type { AssistantMessage, Part, UserMessage } from "@defcode/sdk/v2"
 
 describe("transcript", () => {
   describe("formatAssistantHeader", () => {

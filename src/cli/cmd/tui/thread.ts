@@ -9,7 +9,7 @@ import { Log } from "@/util/log"
 import { withTimeout } from "@/util/timeout"
 import { withNetworkOptions, resolveNetworkOptions } from "@/cli/network"
 import { Filesystem } from "@/util/filesystem"
-import type { Event } from "@definable-ai/sdk/v2"
+import type { Event } from "@defcode/sdk/v2"
 import type { EventSource } from "./context/sdk"
 import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
 import { TuiConfig } from "@/config/tui"
@@ -61,7 +61,7 @@ async function input(value?: string) {
 
 export const TuiThreadCommand = cmd({
   command: "$0 [project]",
-  describe: "start definable tui",
+  describe: "start defcode tui",
   builder: (yargs) =>
     withNetworkOptions(yargs)
       .positional("project", {
@@ -182,7 +182,7 @@ export const TuiThreadCommand = cmd({
             events: undefined,
           }
         : {
-            url: "http://definable.internal",
+            url: "http://defcode.internal",
             fetch: createWorkerFetch(client),
             events: createEventSource(client),
           }

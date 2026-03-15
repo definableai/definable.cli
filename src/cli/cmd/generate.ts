@@ -14,9 +14,9 @@ export const GenerateCommand = {
           {
             lang: "js",
             source: [
-              `import { createDefinableClient } from "@definable-ai/sdk`,
+              `import { createDefcodeClient } from "@defcode/sdk`,
               ``,
-              `const client = createDefinableClient()`,
+              `const client = createDefcodeClient()`,
               `await client.${operation.operationId}({`,
               `  ...`,
               `})`,

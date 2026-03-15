@@ -24,7 +24,7 @@ interface RemovalTargets {
 
 export const UninstallCommand = {
   command: "uninstall",
-  describe: "uninstall definable and remove all related files",
+  describe: "uninstall defcode and remove all related files",
   builder: (yargs: Argv) =>
     yargs
       .option("keep-config", {
@@ -55,7 +55,7 @@ export const UninstallCommand = {
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()
-    prompts.intro("Uninstall Definable")
+    prompts.intro("Uninstall Defcode")
 
     const method = await Installation.method()
     prompts.log.info(`Installation method: ${method}`)
@@ -129,13 +129,13 @@ async function showRemovalSummary(targets: RemovalTargets, method: Installation.
 
   if (method !== "curl" && method !== "unknown") {
     const cmds: Record<string, string> = {
-      npm: "npm uninstall -g definable-ai",
-      pnpm: "pnpm uninstall -g definable-ai",
-      bun: "bun remove -g definable-ai",
-      yarn: "yarn global remove definable-ai",
-      brew: "brew uninstall definable",
-      choco: "choco uninstall definable",
-      scoop: "scoop uninstall definable",
+      npm: "npm uninstall -g defcode-ai",
+      pnpm: "pnpm uninstall -g defcode-ai",
+      bun: "bun remove -g defcode-ai",
+      yarn: "yarn global remove defcode-ai",
+      brew: "brew uninstall defcode",
+      choco: "choco uninstall defcode",
+      scoop: "scoop uninstall defcode",
     }
     prompts.log.info(`  ✓ Package: ${cmds[method] || method}`)
   }
@@ -180,13 +180,13 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
 
   if (method !== "curl" && method !== "unknown") {
     const cmds: Record<string, string[]> = {
-      npm: ["npm", "uninstall", "-g", "definable-ai"],
-      pnpm: ["pnpm", "uninstall", "-g", "definable-ai"],
-      bun: ["bun", "remove", "-g", "definable-ai"],
-      yarn: ["yarn", "global", "remove", "definable-ai"],
-      brew: ["brew", "uninstall", "definable"],
-      choco: ["choco", "uninstall", "definable"],
-      scoop: ["scoop", "uninstall", "definable"],
+      npm: ["npm", "uninstall", "-g", "defcode-ai"],
+      pnpm: ["pnpm", "uninstall", "-g", "defcode-ai"],
+      bun: ["bun", "remove", "-g", "defcode-ai"],
+      yarn: ["yarn", "global", "remove", "defcode-ai"],
+      brew: ["brew", "uninstall", "defcode"],
+      choco: ["choco", "uninstall", "defcode"],
+      scoop: ["scoop", "uninstall", "defcode"],
     }
 
     const cmd = cmds[method]
@@ -194,7 +194,7 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
       spinner.start(`Running ${cmd.join(" ")}...`)
       const result =
         method === "choco"
-          ? await $`echo Y | choco uninstall definable -y -r`.quiet().nothrow()
+          ? await $`echo Y | choco uninstall defcode -y -r`.quiet().nothrow()
           : await $`${cmd}`.quiet().nothrow()
       if (result.exitCode !== 0) {
         spinner.stop(`Package manager uninstall failed: exit code ${result.exitCode}`, 1)
@@ -232,7 +232,7 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
   }
 
   UI.empty()
-  prompts.log.success("Thank you for using Definable!")
+  prompts.log.success("Thank you for using Defcode!")
 }
 
 async function getShellConfigFile(): Promise<string | null> {

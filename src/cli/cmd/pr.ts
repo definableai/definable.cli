@@ -5,7 +5,7 @@ import { $ } from "bun"
 
 export const PrCommand = cmd({
   command: "pr <number>",
-  describe: "fetch and checkout a GitHub PR branch, then run definable",
+  describe: "fetch and checkout a GitHub PR branch, then run defcode",
   builder: (yargs) =>
     yargs.positional("number", {
       type: "number",
@@ -68,10 +68,10 @@ export const PrCommand = cmd({
               const sessionMatch = prInfo.body.match(/https:\/\/opncd\.ai\/s\/([a-zA-Z0-9_-]+)/)
               if (sessionMatch) {
                 const sessionUrl = sessionMatch[0]
-                UI.println(`Found definable session: ${sessionUrl}`)
+                UI.println(`Found defcode session: ${sessionUrl}`)
                 UI.println(`Importing session...`)
 
-                const importResult = await $`definable import ${sessionUrl}`.nothrow()
+                const importResult = await $`def import ${sessionUrl}`.nothrow()
                 if (importResult.exitCode === 0) {
                   const importOutput = importResult.text().trim()
                   // Extract session ID from the output (format: "Imported session: <session-id>")
@@ -88,23 +88,23 @@ export const PrCommand = cmd({
 
         UI.println(`Successfully checked out PR #${prNumber} as branch '${localBranchName}'`)
         UI.println()
-        UI.println("Starting definable...")
+        UI.println("Starting defcode...")
         UI.println()
 
-        // Launch definable TUI with session ID if available
+        // Launch defcode TUI with session ID if available
         const { spawn } = await import("child_process")
-        const definableArgs = sessionId ? ["-s", sessionId] : []
-        const definableProcess = spawn("definable", definableArgs, {
+        const defArgs = sessionId ? ["-s", sessionId] : []
+        const defProcess = spawn("def", defArgs, {
           stdio: "inherit",
           cwd: process.cwd(),
         })
 
         await new Promise<void>((resolve, reject) => {
-          definableProcess.on("exit", (code) => {
+          defProcess.on("exit", (code) => {
             if (code === 0) resolve()
-            else reject(new Error(`definable exited with code ${code}`))
+            else reject(new Error(`def exited with code ${code}`))
           })
-          definableProcess.on("error", reject)
+          defProcess.on("error", reject)
         })
       },
     })

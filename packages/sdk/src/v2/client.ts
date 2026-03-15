@@ -2,10 +2,10 @@ export * from "./gen/types.gen.js"
 
 import { createClient } from "./gen/client/client.gen.js"
 import { type Config } from "./gen/client/types.gen.js"
-import { DefinableClient } from "./gen/sdk.gen.js"
-export { type Config as DefinableClientConfig, DefinableClient }
+import { DefcodeClient } from "./gen/sdk.gen.js"
+export { type Config as DefcodeClientConfig, DefcodeClient }
 
-export function createDefinableClient(config?: Config & { directory?: string }) {
+export function createDefcodeClient(config?: Config & { directory?: string }) {
   if (!config?.fetch) {
     const customFetch: any = (req: any) => {
       // @ts-ignore
@@ -23,10 +23,10 @@ export function createDefinableClient(config?: Config & { directory?: string }) 
     const encodedDirectory = isNonASCII ? encodeURIComponent(config.directory) : config.directory
     config.headers = {
       ...config.headers,
-      "x-definable-directory": encodedDirectory,
+      "x-defcode-directory": encodedDirectory,
     }
   }
 
   const client = createClient(config)
-  return new DefinableClient({ client })
+  return new DefcodeClient({ client })
 }

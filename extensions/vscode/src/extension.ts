@@ -1,6 +1,6 @@
 import * as vscode from "vscode"
 
-const TERMINAL_NAME = "Definable"
+const TERMINAL_NAME = "Defcode"
 
 let terminal: vscode.Terminal | undefined
 
@@ -29,13 +29,13 @@ function getOrCreateTerminal(): vscode.Terminal {
 }
 
 function findBinary(): string {
-  const config = vscode.workspace.getConfiguration("definable")
+  const config = vscode.workspace.getConfiguration("defcode")
   const custom = config.get<string>("binaryPath")
   if (custom) {
     return custom
   }
-  // Default — assume `definable` is on PATH
-  return "definable"
+  // Default — assume `def` is on PATH
+  return "def"
 }
 
 function open() {
@@ -56,8 +56,8 @@ function openInTab() {
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
-    vscode.commands.registerCommand("definable.open", open),
-    vscode.commands.registerCommand("definable.openInTab", openInTab),
+    vscode.commands.registerCommand("defcode.open", open),
+    vscode.commands.registerCommand("defcode.openInTab", openInTab),
   )
 }
 

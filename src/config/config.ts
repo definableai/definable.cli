@@ -9,7 +9,7 @@ import { mergeDeep, pipe, unique } from "remeda"
 import { Global } from "../global"
 import fs from "fs/promises"
 import { lazy } from "../util/lazy"
-import { NamedError } from "@definable-ai/util/error"
+import { NamedError } from "@defcode/util/error"
 import { Flag } from "../flag/flag"
 import { Auth } from "../auth"
 import {
@@ -254,7 +254,7 @@ export namespace Config {
     }))
     json.dependencies = {
       ...json.dependencies,
-      "@definable-ai/plugin": targetVersion,
+      "@defcode/plugin": targetVersion,
     }
     await Filesystem.writeJson(pkg, json)
 
@@ -304,15 +304,15 @@ export namespace Config {
 
     const parsed = await Filesystem.readJson<{ dependencies?: Record<string, string> }>(pkg).catch(() => null)
     const dependencies = parsed?.dependencies ?? {}
-    const depVersion = dependencies["@definable-ai/plugin"]
+    const depVersion = dependencies["@defcode/plugin"]
     if (!depVersion) return true
 
     const targetVersion = Installation.isLocal() ? "latest" : Installation.VERSION
     if (targetVersion === "latest") {
-      const isOutdated = await PackageRegistry.isOutdated("@definable-ai/plugin", depVersion, dir)
+      const isOutdated = await PackageRegistry.isOutdated("@defcode/plugin", depVersion, dir)
       if (!isOutdated) return false
       log.info("Cached version is outdated, proceeding with install", {
-        pkg: "@definable-ai/plugin",
+        pkg: "@defcode/plugin",
         cachedVersion: depVersion,
       })
       return true
@@ -916,7 +916,7 @@ export namespace Config {
       port: z.number().int().positive().optional().describe("Port to listen on"),
       hostname: z.string().optional().describe("Hostname to listen on"),
       mdns: z.boolean().optional().describe("Enable mDNS service discovery"),
-      mdnsDomain: z.string().optional().describe("Custom domain name for mDNS service (default: definable.local)"),
+      mdnsDomain: z.string().optional().describe("Custom domain name for mDNS service (default: defcode.local)"),
       cors: z.array(z.string()).optional().describe("Additional domains to allow for CORS"),
     })
     .strict()
@@ -986,7 +986,7 @@ export namespace Config {
     .object({
       $schema: z.string().optional().describe("JSON schema reference for configuration validation"),
       logLevel: Log.Level.optional().describe("Log level"),
-      server: Server.optional().describe("Server configuration for definable serve and web commands"),
+      server: Server.optional().describe("Server configuration for defcode serve and web commands"),
       command: z
         .record(z.string(), Command)
         .optional()

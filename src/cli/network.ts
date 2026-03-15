@@ -19,8 +19,8 @@ const options = {
   },
   "mdns-domain": {
     type: "string" as const,
-    describe: "custom domain name for mDNS service (default: definable.local)",
-    default: "definable.local",
+    describe: "custom domain name for mDNS service (default: defcode.local)",
+    default: "defcode.local",
   },
   cors: {
     type: "string" as const,

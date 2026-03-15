@@ -51,7 +51,7 @@ jobs:
       - id: version
         run: |
           bun -e '
-          import { Script } from "@definable-ai/script"
+          import { Script } from "@defcode/script"
           import { $ } from "bun"
 
           const output = [`version=${Script.version}`]
@@ -112,7 +112,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: definable-cli
+          name: defcode-cli
           path: dist
     outputs:
       version: ${{ needs.version.outputs.version }}
@@ -155,7 +155,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: definable-cli
+          name: defcode-cli
           path: dist
 
       # TODO: Re-enable AUR steps when targeting Linux

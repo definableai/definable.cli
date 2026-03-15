@@ -1,4 +1,4 @@
-import type { AssistantMessage, Part, UserMessage } from "@definable-ai/sdk/v2"
+import type { AssistantMessage, Part, UserMessage } from "@defcode/sdk/v2"
 import { Locale } from "@/util/locale"
 
 export type TranscriptOptions = {

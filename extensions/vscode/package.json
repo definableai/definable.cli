@@ -1,32 +1,32 @@
 {
-  "name": "definable",
-  "displayName": "Definable",
-  "description": "AI-powered coding assistant — open Definable CLI as a tab in your editor",
+  "name": "defcode",
+  "displayName": "Defcode",
+  "description": "AI-powered coding assistant — open Defcode CLI as a tab in your editor",
   "version": "0.0.1",
-  "publisher": "definable-ai",
+  "publisher": "defcode",
   "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": ["AI", "Programming Languages", "Other"],
-  "keywords": ["ai", "coding", "assistant", "definable", "cli"],
+  "keywords": ["ai", "coding", "assistant", "defcode", "cli"],
   "activationEvents": ["onStartupFinished"],
   "main": "./out/extension.js",
   "icon": "icon.png",
   "contributes": {
     "commands": [
       {
-        "command": "definable.open",
-        "title": "Definable: Open"
+        "command": "defcode.open",
+        "title": "Defcode: Open"
       },
       {
-        "command": "definable.openInTab",
-        "title": "Definable: Open in Editor Tab"
+        "command": "defcode.openInTab",
+        "title": "Defcode: Open in Editor Tab"
       }
     ],
     "keybindings": [
       {
-        "command": "definable.open",
+        "command": "defcode.open",
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d"
       }

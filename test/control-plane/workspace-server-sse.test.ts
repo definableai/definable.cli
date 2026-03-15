@@ -22,8 +22,8 @@ describe("control-plane/workspace-server SSE", () => {
       const response = await app.request("/event", {
         signal: stop.signal,
         headers: {
-          "x-definable-workspace": "wrk_test_workspace",
-          "x-definable-directory": tmp.path,
+          "x-defcode-workspace": "wrk_test_workspace",
+          "x-defcode-directory": tmp.path,
         },
       })
 

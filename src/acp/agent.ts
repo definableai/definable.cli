@@ -41,7 +41,7 @@ import { Config } from "@/config/config"
 import { Todo } from "@/session/todo"
 import { z } from "zod"
 import { LoadAPIKeyError } from "ai"
-import type { AssistantMessage, Event, DefinableClient, SessionMessageResponse, ToolPart } from "@definable-ai/sdk/v2"
+import type { AssistantMessage, Event, DefcodeClient, SessionMessageResponse, ToolPart } from "@defcode/sdk/v2"
 import { applyPatch } from "diff"
 
 type ModeOption = { id: string; name: string; description?: string }
@@ -53,7 +53,7 @@ export namespace ACP {
   const log = Log.create({ service: "acp-agent" })
 
   async function getContextLimit(
-    sdk: DefinableClient,
+    sdk: DefcodeClient,
     providerID: string,
     modelID: string,
     directory: string,
@@ -73,7 +73,7 @@ export namespace ACP {
 
   async function sendUsageUpdate(
     connection: AgentSideConnection,
-    sdk: DefinableClient,
+    sdk: DefcodeClient,
     sessionID: string,
     directory: string,
   ): Promise<void> {
@@ -120,7 +120,7 @@ export namespace ACP {
       })
   }
 
-  export async function init({ sdk: _sdk }: { sdk: DefinableClient }) {
+  export async function init({ sdk: _sdk }: { sdk: DefcodeClient }) {
     return {
       create: (connection: AgentSideConnection, fullConfig: ACPConfig) => {
         return new Agent(connection, fullConfig)
@@ -131,7 +131,7 @@ export namespace ACP {
   export class Agent implements ACPAgent {
     private connection: AgentSideConnection
     private config: ACPConfig
-    private sdk: DefinableClient
+    private sdk: DefcodeClient
     private sessionManager: ACPSessionManager
     private eventAbort = new AbortController()
     private eventStarted = false

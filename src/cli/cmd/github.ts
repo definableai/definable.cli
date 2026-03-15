@@ -132,7 +132,7 @@ type IssueQueryResponse = {
   }
 }
 
-const AGENT_USERNAME = "definable-agent[bot]"
+const AGENT_USERNAME = "defcode-agent[bot]"
 const AGENT_REACTION = "eyes"
 const WORKFLOW_FILE = ".github/workflows/definable.yml"
 
@@ -323,7 +323,7 @@ export const GithubInstallCommand = cmd({
             if (installation) return s.stop("GitHub app already installed")
 
             // Open browser
-            const url = "https://github.com/apps/definable-agent"
+            const url = "https://github.com/apps/defcode-agent"
             const command =
               process.platform === "darwin"
                 ? `open "${url}"`

@@ -208,10 +208,10 @@ export namespace LLM {
       headers: {
         ...(input.model.providerID.startsWith("definable")
           ? {
-              "x-definable-project": Instance.project.id,
-              "x-definable-session": input.sessionID,
-              "x-definable-request": input.user.id,
-              "x-definable-client": Flag.DEFINABLE_CLIENT,
+              "x-defcode-project": Instance.project.id,
+              "x-defcode-session": input.sessionID,
+              "x-defcode-request": input.user.id,
+              "x-defcode-client": Flag.DEFINABLE_CLIENT,
             }
           : input.model.providerID !== "anthropic"
             ? {

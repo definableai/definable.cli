@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package",
-  "name": "@definable-ai/script",
+  "name": "@defcode/script",
   "license": "MIT",
   "type": "module",
   "devDependencies": {

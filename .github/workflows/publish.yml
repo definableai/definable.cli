@@ -1,0 +1,189 @@
+name: publish
+run-name: "${{ format('release {0}', inputs.bump) }}"
+
+on:
+  push:
+    branches:
+      - ci
+      - dev
+      - beta
+      - snapshot-*
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Bump major, minor, or patch"
+        required: false
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+      version:
+        description: "Override version (optional)"
+        required: false
+        type: string
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.version || inputs.bump }}
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
+jobs:
+  version:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    if: github.repository == 'definableai/definable.cli'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-bun
+
+      - name: Setup git committer
+        id: committer
+        uses: ./.github/actions/setup-git-committer
+        with:
+          definable-app-id: ${{ vars.DEFINABLE_APP_ID }}
+          definable-app-secret: ${{ secrets.DEFINABLE_APP_SECRET }}
+
+      - id: version
+        run: |
+          bun -e '
+          import { Script } from "@definable-ai/script"
+          import { $ } from "bun"
+
+          const output = [`version=${Script.version}`]
+
+          if (!Script.preview) {
+            await $`gh release create v${Script.version} -d --title "v${Script.version}" --notes "Release v${Script.version}"`
+            const release = await $`gh release view v${Script.version} --json tagName,databaseId`.json()
+            output.push(`release=${release.databaseId}`)
+            output.push(`tag=${release.tagName}`)
+          }
+
+          output.push(`repo=${process.env.GH_REPO}`)
+
+          if (process.env.GITHUB_OUTPUT) {
+            await Bun.write(process.env.GITHUB_OUTPUT, output.join("\n"))
+          }
+
+          process.exit(0)
+          '
+        env:
+          GH_TOKEN: ${{ steps.committer.outputs.token }}
+          DEFINABLE_BUMP: ${{ inputs.bump }}
+          DEFINABLE_VERSION: ${{ inputs.version }}
+          GH_REPO: ${{ github.repository }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release: ${{ steps.version.outputs.release }}
+      tag: ${{ steps.version.outputs.tag }}
+      repo: ${{ steps.version.outputs.repo }}
+
+  build-cli:
+    needs: version
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    if: github.repository == 'definableai/definable.cli'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-tags: true
+
+      - uses: ./.github/actions/setup-bun
+
+      - name: Setup git committer
+        id: committer
+        uses: ./.github/actions/setup-git-committer
+        with:
+          definable-app-id: ${{ vars.DEFINABLE_APP_ID }}
+          definable-app-secret: ${{ secrets.DEFINABLE_APP_SECRET }}
+
+      - name: Build
+        id: build
+        run: |
+          ./script/build.ts
+        env:
+          DEFINABLE_VERSION: ${{ needs.version.outputs.version }}
+          DEFINABLE_RELEASE: ${{ needs.version.outputs.release }}
+          GH_REPO: ${{ needs.version.outputs.repo }}
+          GH_TOKEN: ${{ steps.committer.outputs.token }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: definable-cli
+          path: dist
+    outputs:
+      version: ${{ needs.version.outputs.version }}
+
+  publish:
+    needs:
+      - version
+      - build-cli
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ./.github/actions/setup-bun
+
+      # TODO: Re-enable Docker steps when targeting Linux
+      # - name: Login to GitHub Container Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.repository_owner }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
+      #
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v3
+      #
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Setup git committer
+        id: committer
+        uses: ./.github/actions/setup-git-committer
+        with:
+          definable-app-id: ${{ vars.DEFINABLE_APP_ID }}
+          definable-app-secret: ${{ secrets.DEFINABLE_APP_SECRET }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: definable-cli
+          path: dist
+
+      # TODO: Re-enable AUR steps when targeting Linux
+      # - name: Cache apt packages (AUR)
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: /var/cache/apt/archives
+      #     key: ${{ runner.os }}-apt-aur-${{ hashFiles('.github/workflows/publish.yml') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-apt-aur-
+      #
+      # - name: Setup SSH for AUR
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y pacman-package-manager
+      #     mkdir -p ~/.ssh
+      #     echo "${{ secrets.AUR_KEY }}" > ~/.ssh/id_rsa
+      #     chmod 600 ~/.ssh/id_rsa
+      #     git config --global user.email "bot@definable.ai"
+      #     git config --global user.name "definable"
+      #     ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts || true
+
+      - run: ./script/publish.ts
+        env:
+          DEFINABLE_VERSION: ${{ needs.version.outputs.version }}
+          DEFINABLE_RELEASE: ${{ needs.version.outputs.release }}
+          AUR_KEY: ${{ secrets.AUR_KEY }}
+          GITHUB_TOKEN: ${{ steps.committer.outputs.token }}
+          GH_REPO: ${{ needs.version.outputs.repo }}
+          NPM_CONFIG_PROVENANCE: false
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

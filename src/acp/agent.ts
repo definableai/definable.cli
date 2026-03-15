@@ -43,6 +43,7 @@ import { z } from "zod"
 import { LoadAPIKeyError } from "ai"
 import type { AssistantMessage, Event, DefcodeClient, SessionMessageResponse, ToolPart } from "@defcode/sdk/v2"
 import { applyPatch } from "diff"
+import { Hash } from "../util/hash"
 
 type ModeOption = { id: string; name: string; description?: string }
 type ModelOption = { modelId: string; name: string }
@@ -281,7 +282,7 @@ export namespace ACP {
                 const output = this.bashOutput(part)
                 const content: ToolCallContent[] = []
                 if (output) {
-                  const hash = String(Bun.hash(output))
+                  const hash = Hash.fast(output)
                   if (part.tool === "bash") {
                     if (this.bashSnapshots.get(part.callID) === hash) {
                       await this.connection

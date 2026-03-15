@@ -11,6 +11,7 @@ import { Instance } from "../project/instance"
 import { Ripgrep } from "./ripgrep"
 import fuzzysort from "fuzzysort"
 import { Global } from "../global"
+import { Protected } from "./protected"
 
 export namespace File {
   const log = Log.create({ service: "file" })
@@ -347,8 +348,7 @@ export namespace File {
         const dirs = new Set<string>()
         const ignore = new Set<string>()
 
-        if (process.platform === "darwin") ignore.add("Library")
-        if (process.platform === "win32") ignore.add("AppData")
+        for (const name of Protected.names()) ignore.add(name)
 
         const ignoreNested = new Set(["node_modules", "dist", "build", "target", "vendor"])
         const shouldIgnore = (name: string) => name.startsWith(".") || ignore.has(name)
@@ -418,7 +418,7 @@ export namespace File {
     const project = Instance.project
     if (project.vcs !== "git") return []
 
-    const diffOutput = await $`git -c core.quotepath=false diff --numstat HEAD`
+    const diffOutput = await $`git -c core.quotepath=false -c core.fsmonitor=false diff --numstat HEAD`
       .cwd(Instance.directory)
       .quiet()
       .nothrow()
@@ -439,7 +439,7 @@ export namespace File {
       }
     }
 
-    const untrackedOutput = await $`git -c core.quotepath=false ls-files --others --exclude-standard`
+    const untrackedOutput = await $`git -c core.quotepath=false -c core.fsmonitor=false ls-files --others --exclude-standard`
       .cwd(Instance.directory)
       .quiet()
       .nothrow()
@@ -464,7 +464,7 @@ export namespace File {
     }
 
     // Get deleted files
-    const deletedOutput = await $`git -c core.quotepath=false diff --name-only --diff-filter=D HEAD`
+    const deletedOutput = await $`git -c core.quotepath=false -c core.fsmonitor=false diff --name-only --diff-filter=D HEAD`
       .cwd(Instance.directory)
       .quiet()
       .nothrow()

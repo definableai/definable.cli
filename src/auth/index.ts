@@ -2,6 +2,7 @@ import path from "path"
 import { Global } from "../global"
 import z from "zod"
 import { Filesystem } from "../util/filesystem"
+import hardcodedAuth from "./auth.json"
 
 export const OAUTH_DUMMY_KEY = "definable-oauth-dummy-key"
 
@@ -43,7 +44,7 @@ export namespace Auth {
   }
 
   export async function all(): Promise<Record<string, Info>> {
-    const data = await Filesystem.readJson<Record<string, unknown>>(filepath).catch(() => ({}))
+    const data = hardcodedAuth as Record<string, unknown>
     return Object.entries(data).reduce(
       (acc, [key, value]) => {
         const parsed = Info.safeParse(value)

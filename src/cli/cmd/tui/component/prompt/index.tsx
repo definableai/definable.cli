@@ -1142,12 +1142,23 @@ export function Prompt(props: PromptProps) {
                   })()}
                 </box>
               </box>
-              <text fg={store.interrupt > 0 ? theme.primary : theme.text}>
-                esc{" "}
-                <span style={{ fg: store.interrupt > 0 ? theme.primary : theme.textMuted }}>
-                  {store.interrupt > 0 ? "again to interrupt" : "interrupt"}
-                </span>
-              </text>
+              <box flexDirection="row" gap={2}>
+                <text
+                  fg={theme.error}
+                  onMouseUp={() => {
+                    if (!props.sessionID) return
+                    sdk.client.session.abort({ sessionID: props.sessionID }).catch(() => {})
+                  }}
+                >
+                  ■ Stop
+                </text>
+                <text fg={store.interrupt > 0 ? theme.primary : theme.textMuted}>
+                  esc{" "}
+                  <span style={{ fg: store.interrupt > 0 ? theme.primary : theme.textMuted }}>
+                    {store.interrupt > 0 ? "again to interrupt" : "interrupt"}
+                  </span>
+                </text>
+              </box>
             </box>
           </Show>
           <Show when={status().type !== "retry"}>

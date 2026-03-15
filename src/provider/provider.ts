@@ -8,7 +8,7 @@ import { Log } from "../util/log"
 import { BunProc } from "../bun"
 import { Plugin } from "../plugin"
 import { ModelsDev } from "./models"
-import { NamedError } from "@definable-ai/util/error"
+import { NamedError } from "@defcode/util/error"
 import { Auth } from "../auth"
 import { Env } from "../env"
 import { Instance } from "../project/instance"
@@ -362,7 +362,7 @@ export namespace Provider {
         options: {
           headers: {
             "HTTP-Referer": "https://definable.ai/",
-            "X-Title": "definable",
+            "X-Title": "defcode",
           },
         },
       }
@@ -373,7 +373,7 @@ export namespace Provider {
         options: {
           headers: {
             "http-referer": "https://definable.ai/",
-            "x-title": "definable",
+            "x-title": "defcode",
           },
         },
       }
@@ -459,7 +459,7 @@ export namespace Provider {
         options: {
           headers: {
             "HTTP-Referer": "https://definable.ai/",
-            "X-Title": "definable",
+            "X-Title": "defcode",
           },
         },
       }
@@ -478,7 +478,7 @@ export namespace Provider {
       const providerConfig = config.provider?.["gitlab"]
 
       const aiGatewayHeaders = {
-        "User-Agent": `definable/${Installation.VERSION} gitlab-ai-provider/${GITLAB_PROVIDER_VERSION} (${os.platform()} ${os.release()}; ${os.arch()})`,
+        "User-Agent": `defcode/${Installation.VERSION} gitlab-ai-provider/${GITLAB_PROVIDER_VERSION} (${os.platform()} ${os.release()}; ${os.arch()})`,
         ...(providerConfig?.options?.aiGatewayHeaders || {}),
       }
 
@@ -547,7 +547,7 @@ export namespace Provider {
       if (!apiToken) {
         throw new Error(
           "CLOUDFLARE_API_TOKEN (or CF_AIG_TOKEN) is required for Cloudflare AI Gateway. " +
-            "Set it via environment variable or run `definable auth cloudflare-ai-gateway`.",
+            "Set it via environment variable or run `def auth cloudflare-ai-gateway`.",
         )
       }
 
@@ -593,7 +593,7 @@ export namespace Provider {
         autoload: false,
         options: {
           headers: {
-            "X-Cerebras-3rd-Party-Integration": "definable",
+            "X-Cerebras-3rd-Party-Integration": "defcode",
           },
         },
       }
@@ -604,7 +604,7 @@ export namespace Provider {
         options: {
           headers: {
             "HTTP-Referer": "https://definable.ai/",
-            "X-Title": "definable",
+            "X-Title": "defcode",
           },
         },
       }

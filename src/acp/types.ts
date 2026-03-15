@@ -1,5 +1,5 @@
 import type { McpServer } from "@agentclientprotocol/sdk"
-import type { DefinableClient } from "@definable-ai/sdk/v2"
+import type { DefcodeClient } from "@defcode/sdk/v2"
 
 export interface ACPSessionState {
   id: string
@@ -15,7 +15,7 @@ export interface ACPSessionState {
 }
 
 export interface ACPConfig {
-  sdk: DefinableClient
+  sdk: DefcodeClient
   defaultModel?: {
     providerID: string
     modelID: string

@@ -1,4 +1,4 @@
-import type { Hooks, PluginInput } from "@definable-ai/plugin"
+import type { Hooks, PluginInput } from "@defcode/plugin"
 import { Log } from "../util/log"
 import { Installation } from "../installation"
 import { Auth, OAUTH_DUMMY_KEY } from "../auth"
@@ -96,7 +96,7 @@ function buildAuthorizeUrl(redirectUri: string, pkce: PkceCodes, state: string):
     id_token_add_organizations: "true",
     codex_cli_simplified_flow: "true",
     state,
-    originator: "definable",
+    originator: "defcode",
   })
   return `${ISSUER}/oauth/authorize?${params.toString()}`
 }
@@ -533,7 +533,7 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "User-Agent": `definable/${Installation.VERSION}`,
+                "User-Agent": `defcode/${Installation.VERSION}`,
               },
               body: JSON.stringify({ client_id: CLIENT_ID }),
             })
@@ -557,7 +557,7 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
-                      "User-Agent": `definable/${Installation.VERSION}`,
+                      "User-Agent": `defcode/${Installation.VERSION}`,
                     },
                     body: JSON.stringify({
                       device_auth_id: deviceData.device_auth_id,
@@ -616,8 +616,8 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
     },
     "chat.headers": async (input, output) => {
       if (input.model.providerID !== "openai") return
-      output.headers.originator = "definable"
-      output.headers["User-Agent"] = `definable/${Installation.VERSION} (${os.platform()} ${os.release()}; ${os.arch()})`
+      output.headers.originator = "defcode"
+      output.headers["User-Agent"] = `defcode/${Installation.VERSION} (${os.platform()} ${os.release()}; ${os.arch()})`
       output.headers.session_id = input.sessionID
     },
   }

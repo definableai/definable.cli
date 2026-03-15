@@ -1154,7 +1154,7 @@ class Event extends _HeyApiClient {
   }
 }
 
-export class DefinableClient extends _HeyApiClient {
+export class DefcodeClient extends _HeyApiClient {
   /**
    * Respond to a permission request
    */

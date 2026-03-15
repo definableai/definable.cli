@@ -7,7 +7,7 @@ import { Flag } from "../../flag/flag"
 import { bootstrap } from "../bootstrap"
 import { EOL } from "os"
 import { Filesystem } from "../../util/filesystem"
-import { createDefinableClient, type Message, type DefinableClient, type ToolPart } from "@definable-ai/sdk/v2"
+import { createDefcodeClient, type Message, type DefcodeClient, type ToolPart } from "@defcode/sdk/v2"
 import { Server } from "../../server/server"
 import { Provider } from "../../provider/provider"
 import { Agent } from "../../agent/agent"
@@ -220,7 +220,7 @@ function normalizePath(input?: string) {
 
 export const RunCommand = cmd({
   command: "run [message..]",
-  describe: "run definable with a message",
+  describe: "run defcode with a message",
   builder: (yargs: Argv) => {
     return yargs
       .positional("message", {
@@ -278,7 +278,7 @@ export const RunCommand = cmd({
       })
       .option("attach", {
         type: "string",
-        describe: "attach to a running definable server (e.g., http://localhost:4096)",
+        describe: "attach to a running defcode server (e.g., http://localhost:4096)",
       })
       .option("dir", {
         type: "string",
@@ -373,7 +373,7 @@ export const RunCommand = cmd({
       return message.slice(0, 50) + (message.length > 50 ? "..." : "")
     }
 
-    async function session(sdk: DefinableClient) {
+    async function session(sdk: DefcodeClient) {
       const baseID = args.continue ? (await sdk.session.list()).data?.find((s) => !s.parentID)?.id : args.session
 
       if (baseID && args.fork) {
@@ -388,7 +388,7 @@ export const RunCommand = cmd({
       return result.data?.id
     }
 
-    async function share(sdk: DefinableClient, sessionID: string) {
+    async function share(sdk: DefcodeClient, sessionID: string) {
       const cfg = await sdk.config.get()
       if (!cfg.data) return
       if (cfg.data.share !== "auto" && !Flag.DEFINABLE_AUTO_SHARE && !args.share) return
@@ -403,7 +403,7 @@ export const RunCommand = cmd({
       }
     }
 
-    async function execute(sdk: DefinableClient) {
+    async function execute(sdk: DefcodeClient) {
       function tool(part: ToolPart) {
         try {
           if (part.tool === "bash") return bash(props<typeof BashTool>(part))
@@ -648,7 +648,7 @@ export const RunCommand = cmd({
     }
 
     if (args.attach) {
-      const sdk = createDefinableClient({ baseUrl: args.attach, directory })
+      const sdk = createDefcodeClient({ baseUrl: args.attach, directory })
       return await execute(sdk)
     }
 
@@ -657,7 +657,7 @@ export const RunCommand = cmd({
         const request = new Request(input, init)
         return Server.App().fetch(request)
       }) as typeof globalThis.fetch
-      const sdk = createDefinableClient({ baseUrl: "http://definable.internal", fetch: fetchFn })
+      const sdk = createDefcodeClient({ baseUrl: "http://defcode.internal", fetch: fetchFn })
       await execute(sdk)
     })
   },

@@ -10,7 +10,7 @@ import { UninstallCommand } from "./cli/cmd/uninstall"
 import { ModelsCommand } from "./cli/cmd/models"
 import { UI } from "./cli/ui"
 import { Installation } from "./installation"
-import { NamedError } from "@definable-ai/util/error"
+import { NamedError } from "@defcode/util/error"
 import { FormatError } from "./cli/error"
 import { ServeCommand } from "./cli/cmd/serve"
 import { WorkspaceServeCommand } from "./cli/cmd/workspace-serve"
@@ -53,7 +53,7 @@ process.on("SIGHUP", () => process.exit())
 
 let cli = yargs(hideBin(process.argv))
   .parserConfiguration({ "populate--": true })
-  .scriptName("definable")
+  .scriptName("def")
   .wrap(100)
   .help("help", "show help")
   .alias("help", "h")
@@ -83,7 +83,7 @@ let cli = yargs(hideBin(process.argv))
     process.env.DEFINABLE = "1"
     process.env.DEFINABLE_PID = String(process.pid)
 
-    Log.Default.info("definable", {
+    Log.Default.info("def", {
       version: Installation.VERSION,
       args: process.argv.slice(2),
     })

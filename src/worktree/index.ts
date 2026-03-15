@@ -2,7 +2,7 @@ import { $ } from "bun"
 import fs from "fs/promises"
 import path from "path"
 import z from "zod"
-import { NamedError } from "@definable-ai/util/error"
+import { NamedError } from "@defcode/util/error"
 import { Global } from "../global"
 import { Instance } from "../project/instance"
 import { InstanceBootstrap } from "../project/bootstrap"
@@ -268,7 +268,7 @@ export namespace Worktree {
   async function candidate(root: string, base?: string) {
     for (const attempt of Array.from({ length: 26 }, (_, i) => i)) {
       const name = base ? (attempt === 0 ? base : `${base}-${randomName()}`) : randomName()
-      const branch = `definable/${name}`
+      const branch = `defcode/${name}`
       const directory = path.join(root, name)
 
       if (await exists(directory)) continue

@@ -49,8 +49,8 @@ function detectPlatformAndArch() {
 
 function findBinary() {
   const { platform, arch } = detectPlatformAndArch()
-  const packageName = `definable-${platform}-${arch}`
-  const binaryName = platform === "windows" ? "definable.exe" : "definable"
+  const packageName = `defcode-${platform}-${arch}`
+  const binaryName = platform === "windows" ? "def.exe" : "def"
 
   try {
     // Use require.resolve to find the package
@@ -89,7 +89,7 @@ function symlinkBinary(sourcePath, binaryName) {
   const { targetPath } = prepareBinDirectory(binaryName)
 
   fs.symlinkSync(sourcePath, targetPath)
-  console.log(`definable binary symlinked: ${targetPath} -> ${sourcePath}`)
+  console.log(`defcode binary symlinked: ${targetPath} -> ${sourcePath}`)
 
   // Verify the file exists after operation
   if (!fs.existsSync(targetPath)) {
@@ -109,7 +109,7 @@ async function main() {
     // On non-Windows platforms, just verify the binary package exists
     // Don't replace the wrapper script - it handles binary execution
     const { binaryPath } = findBinary()
-    const target = path.join(__dirname, "bin", ".definable")
+    const target = path.join(__dirname, "bin", ".def")
     if (fs.existsSync(target)) fs.unlinkSync(target)
     try {
       fs.linkSync(binaryPath, target)
@@ -118,7 +118,7 @@ async function main() {
     }
     fs.chmodSync(target, 0o755)
   } catch (error) {
-    console.error("Failed to setup definable binary:", error.message)
+    console.error("Failed to setup defcode binary:", error.message)
     process.exit(1)
   }
 }

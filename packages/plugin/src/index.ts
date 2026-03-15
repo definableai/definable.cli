@@ -1,6 +1,6 @@
 import type {
   Event,
-  createDefinableClient,
+  createDefcodeClient,
   Project,
   Model,
   Provider,
@@ -10,7 +10,7 @@ import type {
   Part,
   Auth,
   Config,
-} from "@definable-ai/sdk"
+} from "@defcode/sdk"
 
 import type { BunShell } from "./shell"
 import { type ToolDefinition } from "./tool"
@@ -24,7 +24,7 @@ export type ProviderContext = {
 }
 
 export type PluginInput = {
-  client: ReturnType<typeof createDefinableClient>
+  client: ReturnType<typeof createDefcodeClient>
   project: Project
   directory: string
   worktree: string

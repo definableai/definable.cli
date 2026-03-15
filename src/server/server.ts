@@ -9,7 +9,7 @@ import { proxy } from "hono/proxy"
 import { basicAuth } from "hono/basic-auth"
 import z from "zod"
 import { Provider } from "../provider/provider"
-import { NamedError } from "@definable-ai/util/error"
+import { NamedError } from "@defcode/util/error"
 import { LSP } from "../lsp"
 import { Format } from "../format"
 import { TuiRoutes } from "./routes/tui"
@@ -196,8 +196,8 @@ export namespace Server {
         )
         .use(async (c, next) => {
           if (c.req.path === "/log") return next()
-          const workspaceID = c.req.query("workspace") || c.req.header("x-definable-workspace")
-          const raw = c.req.query("directory") || c.req.header("x-definable-directory") || process.cwd()
+          const workspaceID = c.req.query("workspace") || c.req.header("x-defcode-workspace")
+          const raw = c.req.query("directory") || c.req.header("x-defcode-directory") || process.cwd()
           const directory = (() => {
             try {
               return decodeURIComponent(raw)
@@ -225,9 +225,9 @@ export namespace Server {
           openAPIRouteHandler(app, {
             documentation: {
               info: {
-                title: "definable",
+                title: "defcode",
                 version: "0.0.3",
-                description: "definable api",
+                description: "defcode api",
               },
               openapi: "3.1.1",
             },
@@ -581,9 +581,9 @@ export namespace Server {
     const result = await generateSpecs(App() as Hono, {
       documentation: {
         info: {
-          title: "definable",
+          title: "defcode",
           version: "1.0.0",
-          description: "definable api",
+          description: "defcode api",
         },
         openapi: "3.1.1",
       },

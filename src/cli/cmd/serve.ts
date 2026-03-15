@@ -9,14 +9,14 @@ import { Installation } from "../../installation"
 export const ServeCommand = cmd({
   command: "serve",
   builder: (yargs) => withNetworkOptions(yargs),
-  describe: "starts a headless definable server",
+  describe: "starts a headless defcode server",
   handler: async (args) => {
     if (!Flag.DEFINABLE_SERVER_PASSWORD) {
       console.log("Warning: DEFINABLE_SERVER_PASSWORD is not set; server is unsecured.")
     }
     const opts = await resolveNetworkOptions(args)
     const server = Server.listen(opts)
-    console.log(`definable server listening on http://${server.hostname}:${server.port}`)
+    console.log(`defcode server listening on http://${server.hostname}:${server.port}`)
 
     await new Promise(() => {})
     await server.stop()

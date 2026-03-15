@@ -7,7 +7,7 @@ import { Rpc } from "@/util/rpc"
 import { upgrade } from "@/cli/upgrade"
 import { Config } from "@/config/config"
 import { GlobalBus } from "@/bus/global"
-import { createDefinableClient, type Event } from "@definable-ai/sdk/v2"
+import { createDefcodeClient, type Event } from "@defcode/sdk/v2"
 import type { BunWebSocketData } from "hono/bun"
 import { Flag } from "@/flag/flag"
 
@@ -56,8 +56,8 @@ const startEventStream = (directory: string) => {
     return Server.App().fetch(request)
   }) as typeof globalThis.fetch
 
-  const sdk = createDefinableClient({
-    baseUrl: "http://definable.internal",
+  const sdk = createDefcodeClient({
+    baseUrl: "http://defcode.internal",
     directory,
     fetch: fetchFn,
     signal,

@@ -1,4 +1,4 @@
-import { Slug } from "@definable-ai/util/slug"
+import { Slug } from "@defcode/util/slug"
 import path from "path"
 import { BusEvent } from "@/bus/bus-event"
 import { Bus } from "@/bus"

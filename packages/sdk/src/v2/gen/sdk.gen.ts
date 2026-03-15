@@ -217,7 +217,7 @@ class HeyApiRegistry<T> {
   get(key?: string): T {
     const instance = this.instances.get(key ?? this.defaultKey)
     if (!instance) {
-      throw new Error(`No SDK client found. Create one with "new DefinableClient()" to fix this error.`)
+      throw new Error(`No SDK client found. Create one with "new DefcodeClient()" to fix this error.`)
     }
     return instance
   }
@@ -3859,12 +3859,12 @@ export class Event extends HeyApiClient {
   }
 }
 
-export class DefinableClient extends HeyApiClient {
-  public static readonly __registry = new HeyApiRegistry<DefinableClient>()
+export class DefcodeClient extends HeyApiClient {
+  public static readonly __registry = new HeyApiRegistry<DefcodeClient>()
 
   constructor(args?: { client?: Client; key?: string }) {
     super(args)
-    DefinableClient.__registry.set(this, args?.key)
+    DefcodeClient.__registry.set(this, args?.key)
   }
 
   private _global?: Global

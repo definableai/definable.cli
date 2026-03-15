@@ -1,15 +1,15 @@
-import type { Hooks, PluginInput, Plugin as PluginInstance } from "@definable-ai/plugin"
+import type { Hooks, PluginInput, Plugin as PluginInstance } from "@defcode/plugin"
 import { Config } from "../config/config"
 import { Bus } from "../bus"
 import { Log } from "../util/log"
-import { createDefinableClient } from "@definable-ai/sdk"
+import { createDefcodeClient } from "@defcode/sdk"
 import { Server } from "../server/server"
 import { BunProc } from "../bun"
 import { Instance } from "../project/instance"
 import { Flag } from "../flag/flag"
 import { CodexAuthPlugin } from "./codex"
 import { Session } from "../session"
-import { NamedError } from "@definable-ai/util/error"
+import { NamedError } from "@defcode/util/error"
 import { CopilotAuthPlugin } from "./copilot"
 
 export namespace Plugin {
@@ -21,7 +21,7 @@ export namespace Plugin {
   const INTERNAL_PLUGINS: PluginInstance[] = [CodexAuthPlugin, CopilotAuthPlugin]
 
   const state = Instance.state(async () => {
-    const client = createDefinableClient({
+    const client = createDefcodeClient({
       baseUrl: "http://localhost:4096",
       directory: Instance.directory,
       // @ts-ignore - fetch type incompatibility

@@ -12,8 +12,8 @@ export namespace MDNS {
     if (bonjour) unpublish()
 
     try {
-      const host = domain ?? "definable.local"
-      const name = `definable-${port}`
+      const host = domain ?? "defcode.local"
+      const name = `defcode-${port}`
       bonjour = new Bonjour()
       const service = bonjour.publish({
         name,

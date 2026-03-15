@@ -1,15 +1,15 @@
 import { RequestError, type McpServer } from "@agentclientprotocol/sdk"
 import type { ACPSessionState } from "./types"
 import { Log } from "@/util/log"
-import type { DefinableClient } from "@definable-ai/sdk/v2"
+import type { DefcodeClient } from "@defcode/sdk/v2"
 
 const log = Log.create({ service: "acp-session-manager" })
 
 export class ACPSessionManager {
   private sessions = new Map<string, ACPSessionState>()
-  private sdk: DefinableClient
+  private sdk: DefcodeClient
 
-  constructor(sdk: DefinableClient) {
+  constructor(sdk: DefcodeClient) {
     this.sdk = sdk
   }
 

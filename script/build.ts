@@ -12,7 +12,7 @@ const dir = path.resolve(__dirname, "..")
 
 process.chdir(dir)
 
-import { Script } from "@definable-ai/script"
+import { Script } from "@defcode/script"
 import pkg from "../package.json"
 
 const modelsUrl = process.env.DEFINABLE_MODELS_URL || "https://models.dev"
@@ -179,8 +179,8 @@ for (const item of targets) {
       autoloadTsconfig: true,
       autoloadPackageJson: true,
       target: name.replace(pkg.name, "bun") as any,
-      outfile: `dist/${name}/bin/definable`,
-      execArgv: [`--user-agent=definable/${Script.version}`, "--use-system-ca", "--"],
+      outfile: `dist/${name}/bin/def`,
+      execArgv: [`--user-agent=def/${Script.version}`, "--use-system-ca", "--"],
       windows: {},
     },
     entrypoints: ["./src/index.ts", parserWorker, workerPath],

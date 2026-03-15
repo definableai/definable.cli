@@ -29,6 +29,15 @@ const IS_PREVIEW = CHANNEL !== "latest"
 const VERSION = await (async () => {
   if (env.DEFINABLE_VERSION) return env.DEFINABLE_VERSION
   if (IS_PREVIEW) return `0.0.0-${CHANNEL}-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "")}`
+  if (env.DEFINABLE_BUMP) {
+    const [major, minor, patch] = (rootPkg.version || "0.0.0").split(".").map(Number)
+    switch (env.DEFINABLE_BUMP) {
+      case "major": return `${major + 1}.0.0`
+      case "minor": return `${major}.${minor + 1}.0`
+      case "patch": return `${major}.${minor}.${patch + 1}`
+      default: throw new Error(`Invalid bump type: ${env.DEFINABLE_BUMP}`)
+    }
+  }
   return rootPkg.version || "0.0.0"
 })()
 

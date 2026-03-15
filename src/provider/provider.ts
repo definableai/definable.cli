@@ -17,6 +17,7 @@ import { iife } from "@/util/iife"
 import { Global } from "../global"
 import path from "path"
 import { Filesystem } from "../util/filesystem"
+import { Hash } from "../util/hash"
 
 // Direct imports for bundled providers
 import { createAmazonBedrock, type AmazonBedrockProviderSettings } from "@ai-sdk/amazon-bedrock"
@@ -47,6 +48,58 @@ import { Installation } from "../installation"
 
 export namespace Provider {
   const log = Log.create({ service: "provider" })
+
+  const DEFAULT_CHUNK_TIMEOUT = 300_000
+
+  /**
+   * Wraps an SSE response so that if no new chunk arrives within
+   * `timeoutMs` the connection is aborted.  This prevents the CLI
+   * from hanging forever when a provider stalls mid-stream.
+   */
+  function wrapSSE(res: Response, timeoutMs: number, ctl: AbortController): Response {
+    if (!res.body) return res
+
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    const resetTimer = () => {
+      if (timer !== undefined) clearTimeout(timer)
+      timer = setTimeout(() => {
+        ctl.abort(new Error(`SSE chunk timeout after ${timeoutMs}ms`))
+      }, timeoutMs)
+    }
+
+    const source = res.body
+    const wrapped = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        resetTimer()
+        const reader = source.getReader()
+        try {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) {
+              if (timer !== undefined) clearTimeout(timer)
+              controller.close()
+              return
+            }
+            resetTimer()
+            controller.enqueue(value)
+          }
+        } catch (err) {
+          if (timer !== undefined) clearTimeout(timer)
+          controller.error(err)
+        }
+      },
+      cancel() {
+        if (timer !== undefined) clearTimeout(timer)
+      },
+    })
+
+    return new Response(wrapped, {
+      status: res.status,
+      statusText: res.statusText,
+      headers: res.headers,
+    })
+  }
 
   function isGpt5OrLater(modelID: string): boolean {
     const match = /^gpt-(\d+)/.exec(modelID)
@@ -1085,9 +1138,12 @@ export namespace Provider {
           ...model.headers,
         }
 
-      const key = Bun.hash.xxHash32(JSON.stringify({ providerID: model.providerID, npm: model.api.npm, options }))
+      const key = Hash.fast(JSON.stringify({ providerID: model.providerID, npm: model.api.npm, options }))
       const existing = s.sdk.get(key)
       if (existing) return existing
+
+      const chunkTimeout: number = options["chunkTimeout"] ?? DEFAULT_CHUNK_TIMEOUT
+      delete options["chunkTimeout"]
 
       const customFetch = options["fetch"]
 
@@ -1096,15 +1152,16 @@ export namespace Provider {
         const fetchFn = customFetch ?? fetch
         const opts = init ?? {}
 
+        const chunkAbortCtl = new AbortController()
+        const signals: AbortSignal[] = [chunkAbortCtl.signal]
+        if (opts.signal) signals.push(opts.signal)
+
         if (options["timeout"] !== undefined && options["timeout"] !== null) {
-          const signals: AbortSignal[] = []
-          if (opts.signal) signals.push(opts.signal)
           if (options["timeout"] !== false) signals.push(AbortSignal.timeout(options["timeout"]))
-
-          const combined = signals.length > 1 ? AbortSignal.any(signals) : signals[0]
-
-          opts.signal = combined
         }
+
+        const combined = signals.length > 1 ? AbortSignal.any(signals) : signals[0]
+        opts.signal = combined
 
         // Strip openai itemId metadata following what codex does
         // Codex uses #[serde(skip_serializing)] on id fields for all item types:
@@ -1124,11 +1181,12 @@ export namespace Provider {
           }
         }
 
-        return fetchFn(input, {
+        const res = await fetchFn(input, {
           ...opts,
           // @ts-ignore see here: https://github.com/oven-sh/bun/issues/16682
           timeout: false,
         })
+        return wrapSSE(res, chunkTimeout, chunkAbortCtl)
       }
 
       const bundledFn = BUNDLED_PROVIDERS[model.api.npm]

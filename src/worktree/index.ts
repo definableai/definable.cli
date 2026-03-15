@@ -489,6 +489,7 @@ export namespace Worktree {
       return true
     }
 
+    await $`git -c core.fsmonitor=false fsmonitor--daemon stop`.quiet().nothrow().cwd(entry.path)
     const removed = await $`git worktree remove --force ${entry.path}`.quiet().nothrow().cwd(Instance.worktree)
     if (removed.exitCode !== 0) {
       const next = await $`git worktree list --porcelain`.quiet().nothrow().cwd(Instance.worktree)

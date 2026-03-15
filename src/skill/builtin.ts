@@ -7,6 +7,7 @@ import type { Skill } from "./skill"
 import frontendDesignRaw from "./builtin/frontend-design/SKILL.md" with { type: "text" }
 import reactBestPracticesRaw from "./builtin/react-best-practices/SKILL.md" with { type: "text" }
 import webDesignGuidelinesRaw from "./builtin/web-design-guidelines/SKILL.md" with { type: "text" }
+import uiUxProMaxRaw from "./builtin/ui-ux-pro-max/SKILL.md" with { type: "text" }
 // -- Testing & Quality --
 import webappTestingRaw from "./builtin/webapp-testing/SKILL.md" with { type: "text" }
 import testDrivenDevelopmentRaw from "./builtin/test-driven-development/SKILL.md" with { type: "text" }
@@ -34,6 +35,7 @@ export namespace Builtin {
     frontendDesignRaw,
     reactBestPracticesRaw,
     webDesignGuidelinesRaw,
+    uiUxProMaxRaw,
     // Testing & Quality
     webappTestingRaw,
     testDrivenDevelopmentRaw,

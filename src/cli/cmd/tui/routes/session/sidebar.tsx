@@ -105,7 +105,9 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
               </text>
               <text fg={theme.textMuted}>{context()?.tokens ?? 0} tokens</text>
               <text fg={theme.textMuted}>{context()?.percentage ?? 0}% used</text>
-              <text fg={theme.textMuted}>{cost()} spent</text>
+              <Show when={!Provider.HIDE_MODEL_SELECTOR}>
+                <text fg={theme.textMuted}>{cost()} spent</text>
+              </Show>
             </box>
             <Show when={mcpEntries().length > 0}>
               <box>

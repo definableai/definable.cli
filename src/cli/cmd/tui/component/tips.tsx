@@ -1,5 +1,6 @@
 import { createMemo, createSignal, For } from "solid-js"
 import { DEFAULT_THEMES, useTheme } from "@tui/context/theme"
+import { Provider } from "@/provider/provider"
 
 const themeCount = Object.keys(DEFAULT_THEMES).length
 const themeTip = `Use {highlight}/themes{/highlight} or {highlight}Ctrl+X T{/highlight} to switch between ${themeCount} built-in themes`
@@ -59,7 +60,9 @@ const TIPS = [
   "Press {highlight}Ctrl+V{/highlight} to paste images from your clipboard into the prompt",
   "Press {highlight}Ctrl+X E{/highlight} or {highlight}/editor{/highlight} to compose messages in your external editor",
   "Run {highlight}/init{/highlight} to auto-generate project rules based on your codebase",
-  "Run {highlight}/models{/highlight} or {highlight}Ctrl+X M{/highlight} to see and switch between available AI models",
+  ...(!Provider.HIDE_MODEL_SELECTOR
+    ? ["Run {highlight}/models{/highlight} or {highlight}Ctrl+X M{/highlight} to see and switch between available AI models"]
+    : []),
   themeTip,
   "Press {highlight}Ctrl+X N{/highlight} or {highlight}/new{/highlight} to start a fresh conversation session",
   "Use {highlight}/sessions{/highlight} or {highlight}Ctrl+X L{/highlight} to list and continue previous conversations",
@@ -67,9 +70,13 @@ const TIPS = [
   "Press {highlight}Ctrl+X X{/highlight} or {highlight}/export{/highlight} to save the conversation as Markdown",
   "Press {highlight}Ctrl+X Y{/highlight} to copy the assistant's last message to clipboard",
   "Press {highlight}Ctrl+P{/highlight} to see all available actions and commands",
-  "Run {highlight}/connect{/highlight} to add API keys for 75+ supported LLM providers",
+  ...(!Provider.HIDE_MODEL_SELECTOR
+    ? [
+        "Run {highlight}/connect{/highlight} to add API keys for 75+ supported LLM providers",
+        "Press {highlight}F2{/highlight} to quickly switch between recently used models",
+      ]
+    : []),
   "The leader key is {highlight}Ctrl+X{/highlight}; combine with other keys for quick actions",
-  "Press {highlight}F2{/highlight} to quickly switch between recently used models",
   "Press {highlight}Ctrl+X B{/highlight} to show/hide the sidebar panel",
   "Use {highlight}PageUp{/highlight}/{highlight}PageDown{/highlight} to navigate through conversation history",
   "Press {highlight}Ctrl+G{/highlight} or {highlight}Home{/highlight} to jump to the beginning of the conversation",
@@ -143,7 +150,9 @@ const TIPS = [
   "Enable {highlight}scroll_acceleration{/highlight} in {highlight}tui.json{/highlight} for smooth macOS-style scrolling",
   "Toggle username display in chat via command palette ({highlight}Ctrl+P{/highlight})",
   "Run {highlight}docker run -it --rm ghcr.io/anomalyco/definable{/highlight} for containerized use",
-  "Use {highlight}/connect{/highlight} with Definable Zen for curated, tested models",
+  ...(!Provider.HIDE_MODEL_SELECTOR
+    ? ["Use {highlight}/connect{/highlight} with Definable Zen for curated, tested models"]
+    : []),
   "Commit your project's {highlight}AGENTS.md{/highlight} file to Git for team sharing",
   "Use {highlight}/review{/highlight} to review uncommitted changes, branches, or PRs",
   "Run {highlight}/help{/highlight} or {highlight}Ctrl+X H{/highlight} to show the help dialog",

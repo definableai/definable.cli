@@ -1306,7 +1306,16 @@ export namespace Provider {
     )
   }
 
+  export const HARDCODED_MODEL = {
+    providerID: "anthropic",
+    modelID: "claude-opus-4-6",
+  }
+
+  export const HIDE_MODEL_SELECTOR = true
+
   export async function defaultModel() {
+    if (HIDE_MODEL_SELECTOR) return { ...HARDCODED_MODEL }
+
     const cfg = await Config.get()
     if (cfg.model) return parseModel(cfg.model)
 

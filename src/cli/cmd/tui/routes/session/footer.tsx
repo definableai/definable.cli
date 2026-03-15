@@ -5,6 +5,7 @@ import { useDirectory } from "../../context/directory"
 import { useConnected } from "../../component/dialog-model"
 import { createStore } from "solid-js/store"
 import { useRoute } from "../../context/route"
+import { Provider } from "@/provider/provider"
 
 export function Footer() {
   const { theme } = useTheme()
@@ -54,7 +55,7 @@ export function Footer() {
       <text fg={theme.textMuted}>{directory()}</text>
       <box gap={2} flexDirection="row" flexShrink={0}>
         <Switch>
-          <Match when={store.welcome}>
+          <Match when={!Provider.HIDE_MODEL_SELECTOR && store.welcome}>
             <text fg={theme.text}>
               Get started <span style={{ fg: theme.textMuted }}>/connect</span>
             </text>

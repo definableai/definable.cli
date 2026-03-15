@@ -348,7 +348,7 @@ function App() {
 
   createEffect(
     on(
-      () => sync.status === "complete" && sync.data.provider.length === 0,
+      () => !Provider.HIDE_MODEL_SELECTOR && sync.status === "complete" && sync.data.provider.length === 0,
       (isEmpty, wasEmpty) => {
         // only trigger when we transition into an empty-provider state
         if (!isEmpty || wasEmpty) return
@@ -398,8 +398,9 @@ function App() {
       title: "Switch model",
       value: "model.list",
       keybind: "model_list",
-      suggested: true,
+      suggested: !Provider.HIDE_MODEL_SELECTOR,
       category: "Agent",
+      hidden: Provider.HIDE_MODEL_SELECTOR,
       slash: {
         name: "models",
       },
@@ -503,7 +504,8 @@ function App() {
     {
       title: "Connect provider",
       value: "provider.connect",
-      suggested: !connected(),
+      suggested: Provider.HIDE_MODEL_SELECTOR ? false : !connected(),
+      hidden: Provider.HIDE_MODEL_SELECTOR,
       slash: {
         name: "connect",
       },

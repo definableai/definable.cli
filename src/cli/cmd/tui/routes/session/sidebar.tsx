@@ -11,6 +11,7 @@ import { useKeybind } from "../../context/keybind"
 import { useDirectory } from "../../context/directory"
 import { useKV } from "../../context/kv"
 import { TodoItem } from "../../component/todo-item"
+import { Provider } from "@/provider/provider"
 
 export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const sync = useSync()
@@ -270,7 +271,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         </scrollbox>
 
         <box flexShrink={0} gap={1} paddingTop={1}>
-          <Show when={!hasProviders() && !gettingStartedDismissed()}>
+          <Show when={!Provider.HIDE_MODEL_SELECTOR && !hasProviders() && !gettingStartedDismissed()}>
             <box
               backgroundColor={theme.backgroundElement}
               paddingTop={1}

@@ -76,6 +76,7 @@ import { useExit } from "../../context/exit.tsx"
 import { Filesystem } from "@/util/filesystem"
 import { Global } from "@/global"
 import { PermissionPrompt } from "./permission.tsx"
+import { Provider } from "@/provider/provider"
 import { QuestionPrompt } from "./question.tsx"
 import { DialogExportOptions } from "../../ui/dialog-export-options.tsx"
 import { formatTranscript } from "../../util/transcript.ts"
@@ -1382,7 +1383,9 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
                 ▣{" "}
               </span>{" "}
               <span style={{ fg: theme.text }}>{Locale.titlecase(props.message.mode)}</span>
-              <span style={{ fg: theme.textMuted }}> · {props.message.modelID}</span>
+              <Show when={!Provider.HIDE_MODEL_SELECTOR}>
+                <span style={{ fg: theme.textMuted }}> · {props.message.modelID}</span>
+              </Show>
               <Show when={duration()}>
                 <span style={{ fg: theme.textMuted }}> · {Locale.duration(duration())}</span>
               </Show>

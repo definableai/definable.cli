@@ -1,4 +1,5 @@
 import path from "path"
+import fs from "fs/promises"
 import { pathToFileURL } from "url"
 import z from "zod"
 import { Tool } from "./tool"
@@ -6,6 +7,7 @@ import { Skill } from "../skill"
 import { PermissionNext } from "../permission/next"
 import { Ripgrep } from "../file/ripgrep"
 import { iife } from "@/util/iife"
+import { Global } from "@/global"
 
 export const SkillTool = Tool.define("skill", async (ctx) => {
   const skills = await Skill.all()
@@ -59,7 +61,7 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
     description,
     parameters,
     async execute(params: z.infer<typeof parameters>, ctx) {
-      const skill = await Skill.get(params.name)
+      let skill = await Skill.get(params.name)
 
       if (!skill) {
         const available = await Skill.all().then((x) => Object.keys(x).join(", "))
@@ -75,15 +77,20 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
 
       // Builtin skills have their content embedded at compile time;
       // their location points to a virtual $bunfs path that doesn't exist on disk.
-      if (skill.builtin) {
-        const assetLines: string[] = []
-        if (skill.assets && Object.keys(skill.assets).length > 0) {
-          assetLines.push("", "<skill_files>")
-          for (const [filePath, content] of Object.entries(skill.assets)) {
-            assetLines.push(`<file name="${filePath}">`, String(content), "</file>")
-          }
-          assetLines.push("</skill_files>")
+      // Extract assets to cache so scripts/data files are executable on disk.
+      if (skill.builtin && skill.assets && Object.keys(skill.assets).length > 0) {
+        const extractDir = path.join(Global.Path.cache, "skills", skill.name)
+        await fs.mkdir(extractDir, { recursive: true })
+        for (const [filePath, content] of Object.entries(skill.assets)) {
+          const dest = path.join(extractDir, filePath)
+          await fs.mkdir(path.dirname(dest), { recursive: true })
+          await fs.writeFile(dest, String(content))
         }
+        // Also write SKILL.md for completeness
+        await fs.writeFile(path.join(extractDir, "SKILL.md"), skill.content)
+        // Override location so the rest of the flow uses the extracted dir
+        skill = { ...skill, location: path.join(extractDir, "SKILL.md") }
+      } else if (skill.builtin) {
         return {
           title: `Loaded skill: ${skill.name}`,
           output: [
@@ -91,7 +98,6 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
             `# Skill: ${skill.name}`,
             "",
             skill.content.trim(),
-            ...assetLines,
             "",
             "</skill_content>",
           ].join("\n"),
@@ -102,7 +108,6 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
       }
 
       const dir = path.dirname(skill.location)
-      const base = pathToFileURL(dir).href
 
       const limit = 10
       const files = await iife(async () => {
@@ -132,8 +137,8 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
           "",
           skill.content.trim(),
           "",
-          `Base directory for this skill: ${base}`,
-          "Relative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.",
+          `Base directory for this skill: ${dir}`,
+          `When running scripts or reading files from this skill, use absolute paths prefixed with ${dir}/`,
           "Note: file list is sampled.",
           "",
           "<skill_files>",

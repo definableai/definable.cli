@@ -1142,7 +1142,7 @@ export function Prompt(props: PromptProps) {
                   })()}
                 </box>
               </box>
-              <box flexDirection="row" gap={2}>
+              <box flexDirection="row" gap={2} flexWrap="wrap">
                 <text
                   fg={theme.error}
                   onMouseUp={() => {
@@ -1162,7 +1162,7 @@ export function Prompt(props: PromptProps) {
             </box>
           </Show>
           <Show when={status().type !== "retry"}>
-            <box gap={2} flexDirection="row">
+            <box gap={2} flexDirection="row" flexWrap="wrap">
               <Switch>
                 <Match when={store.mode === "normal"}>
                   <Show when={local.model.variant.list().length > 0}>

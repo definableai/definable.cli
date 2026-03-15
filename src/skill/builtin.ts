@@ -3,10 +3,20 @@ import matter from "gray-matter"
 import type { Skill } from "./skill"
 
 // Embedded at compile time via Bun's text imports
+// -- Design & Frontend --
 import frontendDesignRaw from "./builtin/frontend-design/SKILL.md" with { type: "text" }
-import webappTestingRaw from "./builtin/webapp-testing/SKILL.md" with { type: "text" }
 import reactBestPracticesRaw from "./builtin/react-best-practices/SKILL.md" with { type: "text" }
 import webDesignGuidelinesRaw from "./builtin/web-design-guidelines/SKILL.md" with { type: "text" }
+// -- Testing & Quality --
+import webappTestingRaw from "./builtin/webapp-testing/SKILL.md" with { type: "text" }
+import testDrivenDevelopmentRaw from "./builtin/test-driven-development/SKILL.md" with { type: "text" }
+import verificationBeforeCompletionRaw from "./builtin/verification-before-completion/SKILL.md" with { type: "text" }
+// -- Workflow & Process --
+import systematicDebuggingRaw from "./builtin/systematic-debugging/SKILL.md" with { type: "text" }
+import writingPlansRaw from "./builtin/writing-plans/SKILL.md" with { type: "text" }
+import brainstormingRaw from "./builtin/brainstorming/SKILL.md" with { type: "text" }
+import subagentDrivenDevelopmentRaw from "./builtin/subagent-driven-development/SKILL.md" with { type: "text" }
+import receivingCodeReviewRaw from "./builtin/receiving-code-review/SKILL.md" with { type: "text" }
 
 /**
  * Built-in skills that are always available, even in distributed builds.
@@ -19,7 +29,22 @@ import webDesignGuidelinesRaw from "./builtin/web-design-guidelines/SKILL.md" wi
 export namespace Builtin {
   const BUILTIN_DIR = path.join(import.meta.dirname, "builtin")
 
-  const BUILTIN_RAW = [frontendDesignRaw, webappTestingRaw, reactBestPracticesRaw, webDesignGuidelinesRaw]
+  const BUILTIN_RAW = [
+    // Design & Frontend
+    frontendDesignRaw,
+    reactBestPracticesRaw,
+    webDesignGuidelinesRaw,
+    // Testing & Quality
+    webappTestingRaw,
+    testDrivenDevelopmentRaw,
+    verificationBeforeCompletionRaw,
+    // Workflow & Process
+    systematicDebuggingRaw,
+    writingPlansRaw,
+    brainstormingRaw,
+    subagentDrivenDevelopmentRaw,
+    receivingCodeReviewRaw,
+  ]
 
   function parse(raw: string): Skill.Info {
     const md = matter(raw)

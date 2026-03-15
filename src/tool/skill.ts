@@ -73,6 +73,25 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
         metadata: {},
       })
 
+      // Builtin skills have their content embedded at compile time;
+      // their location points to a virtual $bunfs path that doesn't exist on disk.
+      if (skill.builtin) {
+        return {
+          title: `Loaded skill: ${skill.name}`,
+          output: [
+            `<skill_content name="${skill.name}">`,
+            `# Skill: ${skill.name}`,
+            "",
+            skill.content.trim(),
+            "",
+            "</skill_content>",
+          ].join("\n"),
+          metadata: {
+            name: skill.name,
+          } as { name: string; dir?: string },
+        }
+      }
+
       const dir = path.dirname(skill.location)
       const base = pathToFileURL(dir).href
 

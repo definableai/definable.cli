@@ -13,6 +13,7 @@ import { Bus } from "@/bus"
 import { Session } from "@/session"
 import { Discovery } from "./discovery"
 import { Glob } from "../util/glob"
+import { Builtin } from "./builtin"
 
 export namespace Skill {
   const log = Log.create({ service: "skill" })
@@ -52,6 +53,11 @@ export namespace Skill {
   export const state = Instance.state(async () => {
     const skills: Record<string, Info> = {}
     const dirs = new Set<string>()
+
+    // Load built-in skills first (always available, even in distributed builds)
+    for (const skill of Builtin.skills) {
+      skills[skill.name] = skill
+    }
 
     const addSkill = async (match: string) => {
       const md = await ConfigMarkdown.parse(match).catch((err) => {

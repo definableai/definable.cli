@@ -76,6 +76,14 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
       // Builtin skills have their content embedded at compile time;
       // their location points to a virtual $bunfs path that doesn't exist on disk.
       if (skill.builtin) {
+        const assetLines: string[] = []
+        if (skill.assets && Object.keys(skill.assets).length > 0) {
+          assetLines.push("", "<skill_files>")
+          for (const [filePath, content] of Object.entries(skill.assets)) {
+            assetLines.push(`<file name="${filePath}">`, String(content), "</file>")
+          }
+          assetLines.push("</skill_files>")
+        }
         return {
           title: `Loaded skill: ${skill.name}`,
           output: [
@@ -83,6 +91,7 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
             `# Skill: ${skill.name}`,
             "",
             skill.content.trim(),
+            ...assetLines,
             "",
             "</skill_content>",
           ].join("\n"),

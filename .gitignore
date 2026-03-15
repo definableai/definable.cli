@@ -4,4 +4,5 @@ dist
 gen
 app.log
 src/provider/models-snapshot.ts
+src/skill/builtin-assets.ts
 /extensions/vscode/out

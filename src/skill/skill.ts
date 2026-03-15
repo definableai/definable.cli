@@ -23,6 +23,7 @@ export namespace Skill {
     location: z.string(),
     content: z.string(),
     builtin: z.boolean().optional(),
+    assets: z.record(z.string(), z.string()).optional(),
   })
   export type Info = z.infer<typeof Info>
 

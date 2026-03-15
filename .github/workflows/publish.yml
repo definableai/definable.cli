@@ -57,6 +57,17 @@ jobs:
           const output = [`version=${Script.version}`]
 
           if (!Script.preview) {
+            // Commit bumped version back to package.json
+            const pkgPath = "./package.json"
+            const pkg = await Bun.file(pkgPath).json()
+            if (pkg.version !== Script.version) {
+              pkg.version = Script.version
+              await Bun.write(pkgPath, JSON.stringify(pkg, null, 2) + "\n")
+              await $`git add package.json`
+              await $`git commit -m "v${Script.version}"`
+              await $`git push`
+            }
+
             await $`gh release create v${Script.version} -d --title "v${Script.version}" --notes "Release v${Script.version}"`
             const release = await $`gh release view v${Script.version} --json tagName,databaseId`.json()
             output.push(`release=${release.databaseId}`)

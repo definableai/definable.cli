@@ -1,36 +1,89 @@
 {
-  "name": "defcode",
-  "displayName": "Defcode",
-  "description": "AI-powered coding assistant — open Defcode CLI as a tab in your editor",
-  "version": "0.0.1",
-  "publisher": "defcode",
+  "name": "definable",
+  "displayName": "Definable",
+  "description": "AI-powered coding assistant — open Definable CLI in the sidebar",
+  "version": "0.0.3",
+  "publisher": "definable-ai",
   "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["AI", "Programming Languages", "Other"],
-  "keywords": ["ai", "coding", "assistant", "defcode", "cli"],
-  "activationEvents": ["onStartupFinished"],
+  "categories": [
+    "AI",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "coding",
+    "assistant",
+    "defcode",
+    "cli"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "icon": "icon.png",
   "contributes": {
     "commands": [
       {
-        "command": "defcode.open",
-        "title": "Defcode: Open"
+        "command": "definable.open",
+        "title": "Definable: Open",
+        "icon": "$(sparkle)"
       },
       {
-        "command": "defcode.openInTab",
-        "title": "Defcode: Open in Editor Tab"
+        "command": "definable.openInNewTab",
+        "title": "Definable: New Session",
+        "icon": "$(add)"
+      },
+      {
+        "command": "definable.closeAll",
+        "title": "Definable: Close All Sessions"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "definable-sidebar",
+          "title": "Definable",
+          "icon": "icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "definable-sidebar": [
+        {
+          "type": "webview",
+          "id": "definable.sessionsView",
+          "name": "Definable",
+          "visibility": "visible"
+        }
+      ]
+    },
     "keybindings": [
       {
-        "command": "defcode.open",
+        "command": "definable.open",
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d"
+      },
+      {
+        "command": "definable.openInNewTab",
+        "key": "ctrl+shift+n",
+        "mac": "cmd+shift+n",
+        "when": "definable.active"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Definable",
+      "properties": {
+        "definable.binaryPath": {
+          "type": "string",
+          "default": "",
+          "description": "Custom path to the definable binary. Leave empty to use PATH."
+        }
+      }
+    }
   },
   "scripts": {
     "dev": "tsc -w -p tsconfig.json",
@@ -40,5 +93,8 @@
   "devDependencies": {
     "@types/vscode": "^1.85.0",
     "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "vsce": "^2.15.0"
   }
 }

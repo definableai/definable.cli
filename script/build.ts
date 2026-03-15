@@ -196,6 +196,7 @@ for (const item of targets) {
 
   await $`rm -rf ./dist/${name}/bin/tui`
   await $`rm -f ./dist/${name}/bin/*.map`
+  await $`chmod +x ./dist/${name}/bin/def`
   await Bun.file(`dist/${name}/package.json`).write(
     JSON.stringify(
       {

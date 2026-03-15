@@ -56,6 +56,7 @@ export namespace Builtin {
       description: md.data.description,
       location: path.join(BUILTIN_DIR, name, "SKILL.md"),
       content: md.content,
+      builtin: true,
     }
   }
 

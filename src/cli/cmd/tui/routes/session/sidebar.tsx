@@ -1,5 +1,5 @@
 import { useSync } from "@tui/context/sync"
-import { createMemo, createSignal, For, Show, Switch, Match } from "solid-js"
+import { createEffect, createMemo, createSignal, For, on, onCleanup, Show, Switch, Match } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useTheme } from "../../context/theme"
 import { Locale } from "@/util/locale"
@@ -220,7 +220,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
             {(() => {
               const recentSessions = createMemo(() =>
                 sync.data.session
-                  .filter((x) => x.parentID === undefined && x.id !== props.sessionID)
+                  .filter((x) => x.parentID === undefined)
                   .toSorted((a, b) => b.time.updated - a.time.updated)
                   .slice(0, 5),
               )
@@ -232,15 +232,17 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                     </text>
                     <For each={recentSessions()}>
                       {(item) => {
+                        const isCurrent = createMemo(() => item.id === props.sessionID)
                         const [hover, setHover] = createSignal(false)
                         return (
                           <box
                             flexDirection="row"
                             justifyContent="space-between"
                             gap={1}
-                            onMouseOver={() => setHover(true)}
+                            onMouseOver={() => !isCurrent() && setHover(true)}
                             onMouseOut={() => setHover(false)}
                             onMouseUp={() => {
+                              if (isCurrent()) return
                               route.navigate({
                                 type: "session",
                                 sessionID: item.id,
@@ -248,14 +250,19 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                             }}
                           >
                             <text
-                              fg={hover() ? theme.text : theme.textMuted}
+                              fg={isCurrent() ? theme.text : hover() ? theme.text : theme.textMuted}
                               wrapMode="none"
                             >
-                              {Locale.truncate(item.title, 26)}
+                              {isCurrent() ? <b>{Locale.truncate(item.title, 18)}</b> : Locale.truncate(item.title, 26)}
                             </text>
-                            <text fg={theme.textMuted} flexShrink={0}>
-                              {Locale.time(item.time.updated)}
-                            </text>
+                            <box flexDirection="row" gap={1} flexShrink={0}>
+                              <Show when={isCurrent()}>
+                                <text fg={theme.success}>current</text>
+                              </Show>
+                              <text fg={theme.textMuted}>
+                                {Locale.time(item.time.updated)}
+                              </text>
+                            </box>
                           </box>
                         )
                       }}
@@ -281,32 +288,43 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                         const [hover, setHover] = createSignal(false)
                         const status = createMemo(() => sync.data.session_status[item.id])
                         const isBusy = createMemo(() => status()?.type === "busy")
+                        const [hidden, setHidden] = createSignal(false)
+                        createEffect(
+                          on(isBusy, (busy, prevBusy) => {
+                            if (!busy && prevBusy) {
+                              const t = setTimeout(() => setHidden(true), 4000)
+                              onCleanup(() => clearTimeout(t))
+                            }
+                          }, { defer: true }),
+                        )
                         return (
-                          <box
-                            flexDirection="row"
-                            gap={1}
-                            onMouseOver={() => setHover(true)}
-                            onMouseOut={() => setHover(false)}
-                            onMouseUp={() => {
-                              route.navigate({
-                                type: "session",
-                                sessionID: item.id,
-                              })
-                            }}
-                          >
-                            <text
-                              flexShrink={0}
-                              fg={isBusy() ? theme.warning : theme.success}
+                          <Show when={!hidden()}>
+                            <box
+                              flexDirection="row"
+                              gap={1}
+                              onMouseOver={() => setHover(true)}
+                              onMouseOut={() => setHover(false)}
+                              onMouseUp={() => {
+                                route.navigate({
+                                  type: "session",
+                                  sessionID: item.id,
+                                })
+                              }}
                             >
-                              {isBusy() ? "●" : "•"}
-                            </text>
-                            <text
-                              fg={hover() ? theme.text : theme.textMuted}
-                              wrapMode="none"
-                            >
-                              {Locale.truncate(item.title, 30)}
-                            </text>
-                          </box>
+                              <text
+                                flexShrink={0}
+                                fg={isBusy() ? theme.warning : theme.success}
+                              >
+                                {isBusy() ? "●" : "•"}
+                              </text>
+                              <text
+                                fg={hover() ? theme.text : theme.textMuted}
+                                wrapMode="none"
+                              >
+                                {Locale.truncate(item.title, 30)}
+                              </text>
+                            </box>
+                          </Show>
                         )
                       }}
                     </For>

@@ -7,6 +7,7 @@ import { UI } from "../ui"
 import { MCP } from "../../mcp"
 import { McpAuth } from "../../mcp/auth"
 import { McpOAuthProvider } from "../../mcp/oauth-provider"
+import { McpBuiltin } from "../../mcp/builtin"
 import { Config } from "../../config/config"
 import { Instance } from "../../project/instance"
 import { Installation } from "../../installation"
@@ -453,6 +454,88 @@ export const McpAddCommand = cmd({
           })
           if (prompts.isCancel(scopeResult)) throw new UI.CancelledError()
           configPath = scopeResult
+        }
+
+        // Ask whether to use a preset or configure manually
+        const presetOptions = [
+          ...McpBuiltin.presets.map((p) => ({
+            label: p.label,
+            value: p.name,
+            hint: p.description,
+          })),
+          {
+            label: "Custom",
+            value: "custom",
+            hint: "Configure manually",
+          },
+        ]
+
+        const presetChoice = await prompts.select({
+          message: "Select MCP server",
+          options: presetOptions,
+        })
+        if (prompts.isCancel(presetChoice)) throw new UI.CancelledError()
+
+        const preset = McpBuiltin.presets.find((p) => p.name === presetChoice)
+
+        if (preset?.name === McpBuiltin.FIGMA.name) {
+          const authMethod = await prompts.select({
+            message: "Authentication method",
+            options: [
+              {
+                label: "Personal Access Token",
+                value: "pat",
+                hint: "Works immediately, token stored in config",
+              },
+              {
+                label: "OAuth",
+                value: "oauth",
+                hint: "Requires an extra auth step after adding",
+              },
+            ],
+          })
+          if (prompts.isCancel(authMethod)) throw new UI.CancelledError()
+
+          let mcpConfig: Config.Mcp
+
+          if (authMethod === "pat") {
+            const token = await prompts.password({
+              message: "Enter your Figma Personal Access Token",
+            })
+            if (prompts.isCancel(token)) throw new UI.CancelledError()
+
+            // PAT auth uses the local npx package — the remote Figma MCP server is OAuth-only
+            mcpConfig = {
+              type: "local",
+              command: McpBuiltin.FIGMA_LOCAL_COMMAND,
+              environment: { [McpBuiltin.FIGMA_LOCAL_ENV_KEY]: token },
+            }
+
+            if (configPath === (await resolveConfigPath(Instance.worktree))) {
+              prompts.log.warn("Your token will be stored in the project config. Add definable.json to .gitignore to avoid committing it.")
+            }
+          } else {
+            mcpConfig = {
+              type: "remote",
+              url: McpBuiltin.FIGMA_REMOTE_URL,
+              oauth: {},
+            }
+          }
+
+          await addMcpToConfig(McpBuiltin.FIGMA.name, mcpConfig, configPath)
+          prompts.log.success(`MCP server "figma" added to ${configPath}`)
+          if (authMethod === "oauth") {
+            prompts.log.info("Next step: Run: def mcp auth figma")
+          }
+          prompts.outro("MCP server added successfully")
+          return
+        }
+
+        if (preset) {
+          await addMcpToConfig(preset.name, preset.config, configPath)
+          prompts.log.success(`MCP server "${preset.name}" added to ${configPath}`)
+          prompts.outro("MCP server added successfully")
+          return
         }
 
         const name = await prompts.text({

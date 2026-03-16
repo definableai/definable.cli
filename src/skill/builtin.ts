@@ -19,6 +19,14 @@ import writingPlansRaw from "./builtin/writing-plans/SKILL.md" with { type: "tex
 import brainstormingRaw from "./builtin/brainstorming/SKILL.md" with { type: "text" }
 import subagentDrivenDevelopmentRaw from "./builtin/subagent-driven-development/SKILL.md" with { type: "text" }
 import receivingCodeReviewRaw from "./builtin/receiving-code-review/SKILL.md" with { type: "text" }
+// -- Marketing & SEO --
+import analyticsTrackingRaw from "./builtin/analytics-tracking/SKILL.md" with { type: "text" }
+import schemaMarkupRaw from "./builtin/schema-markup/SKILL.md" with { type: "text" }
+import seoAuditRaw from "./builtin/seo-audit/SKILL.md" with { type: "text" }
+// -- Figma & Design --
+import codeConnectComponentsRaw from "./builtin/code-connect-components/SKILL.md" with { type: "text" }
+import createDesignSystemRulesRaw from "./builtin/create-design-system-rules/SKILL.md" with { type: "text" }
+import implementDesignRaw from "./builtin/implement-design/SKILL.md" with { type: "text" }
 
 /**
  * Built-in skills that are always available, even in distributed builds.
@@ -47,6 +55,14 @@ export namespace Builtin {
     brainstormingRaw,
     subagentDrivenDevelopmentRaw,
     receivingCodeReviewRaw,
+    // Marketing & SEO
+    analyticsTrackingRaw,
+    schemaMarkupRaw,
+    seoAuditRaw,
+    // Figma & Design
+    codeConnectComponentsRaw,
+    createDesignSystemRulesRaw,
+    implementDesignRaw,
   ]
 
   function parse(raw: string): Skill.Info {

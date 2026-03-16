@@ -1165,11 +1165,6 @@ export function Prompt(props: PromptProps) {
             <box gap={2} flexDirection="row" flexWrap="wrap">
               <Switch>
                 <Match when={store.mode === "normal"}>
-                  <Show when={local.model.variant.list().length > 0}>
-                    <text fg={theme.text}>
-                      {keybind.print("variant_cycle")} <span style={{ fg: theme.textMuted }}>variants</span>
-                    </text>
-                  </Show>
                   <Show when={local.agent.list().length > 1}>
                     <text fg={theme.text}>
                       {keybind.print("agent_cycle")} <span style={{ fg: theme.textMuted }}>agents</span>

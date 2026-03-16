@@ -1010,13 +1010,16 @@ export function Prompt(props: PromptProps) {
                       {(agent, index) => {
                         const isActive = createMemo(() => local.agent.current().name === agent.name)
                         const color = createMemo(() => local.agent.color(agent.name))
+                        const [hovered, setHovered] = createSignal(false)
                         return (
                           <>
                             <text
-                              fg={isActive() ? color() : theme.textMuted}
+                              fg={isActive() ? color() : hovered() ? theme.text : theme.textMuted}
+                              onMouseOver={() => setHovered(true)}
+                              onMouseOut={() => setHovered(false)}
                               onMouseUp={() => local.agent.set(agent.name)}
                             >
-                              {Locale.titlecase(agent.name)}
+                              {isActive() ? <b>{Locale.titlecase(agent.name)}</b> : Locale.titlecase(agent.name)}
                             </text>
                             <Show when={index() < local.agent.list().length - 1}>
                               <text fg={theme.textMuted}> / </text>

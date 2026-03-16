@@ -1348,12 +1348,8 @@ function UserMessage(props: {
           marginTop={props.index === 0 ? 0 : 1}
         >
           <box
-            onMouseOver={() => {
-              setHover(true)
-            }}
-            onMouseOut={() => {
-              setHover(false)
-            }}
+            onMouseOver={() => { setHover(true) }}
+            onMouseOut={() => { setHover(false) }}
             onMouseUp={props.onMouseUp}
             paddingTop={1}
             paddingBottom={1}

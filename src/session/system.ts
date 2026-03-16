@@ -1,6 +1,8 @@
 import { Ripgrep } from "../file/ripgrep"
 
 import { Instance } from "../project/instance"
+import { Skill } from "../skill/skill"
+import { MCP } from "../mcp"
 
 import PROMPT_ANTHROPIC from "./prompt/anthropic.txt"
 import PROMPT_ANTHROPIC_WITHOUT_TODO from "./prompt/qwen.txt"
@@ -28,6 +30,19 @@ export namespace SystemPrompt {
 
   export async function environment(model: Provider.Model) {
     const project = Instance.project
+
+    const [skills, mcpStatus] = await Promise.all([
+      Skill.all(),
+      MCP.status().catch(() => ({} as Record<string, { status: string }>)),
+    ])
+
+    const skillLines = skills.map((s) => `  - ${s.name}: ${s.description}`).join("\n")
+
+    const connectedMcps = Object.entries(mcpStatus)
+      .filter(([, s]) => s.status === "connected")
+      .map(([name]) => `  - ${name}`)
+      .join("\n")
+
     return [
       [
         `You are powered by Definable.`,
@@ -48,7 +63,15 @@ export namespace SystemPrompt {
             : ""
         }`,
         `</directories>`,
-      ].join("\n"),
+        skills.length > 0
+          ? [`<available-skills>`, `${skillLines}`, `</available-skills>`].join("\n")
+          : "",
+        connectedMcps
+          ? [`<active-mcp-servers>`, `${connectedMcps}`, `</active-mcp-servers>`].join("\n")
+          : "",
+      ]
+        .filter(Boolean)
+        .join("\n"),
     ]
   }
 }

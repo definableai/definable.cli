@@ -37,6 +37,29 @@ interface McpSearchResponse {
   }
 }
 
+function parseResultTitles(text: string, max: number): string[] {
+  const titles: string[] = []
+
+  // Pattern: "Title: ..." (common Exa format)
+  const titlePattern = /^Title:\s*(.+)$/gm
+  let match
+  while ((match = titlePattern.exec(text)) !== null && titles.length < max) {
+    titles.push(match[1].trim())
+  }
+  if (titles.length > 0) return titles
+
+  // Pattern: numbered entries "1. Title here" (skip URL lines)
+  const numberedPattern = /^\d+\.\s+(.+)$/gm
+  while ((match = numberedPattern.exec(text)) !== null && titles.length < max) {
+    const line = match[1].trim().replace(/^\*\*|\*\*$/g, "")
+    if (line.length > 0 && !line.startsWith("http") && !line.startsWith("URL:")) {
+      titles.push(line)
+    }
+  }
+
+  return titles
+}
+
 export const WebSearchTool = Tool.define("websearch", async () => {
   return {
     get description() {
@@ -122,10 +145,11 @@ export const WebSearchTool = Tool.define("websearch", async () => {
           if (line.startsWith("data: ")) {
             const data: McpSearchResponse = JSON.parse(line.substring(6))
             if (data.result && data.result.content && data.result.content.length > 0) {
+              const output = data.result.content[0].text
               return {
-                output: data.result.content[0].text,
+                output,
                 title: `Web search: ${params.query}`,
-                metadata: {},
+                metadata: { titles: parseResultTitles(output, 3) },
               }
             }
           }
@@ -134,7 +158,7 @@ export const WebSearchTool = Tool.define("websearch", async () => {
         return {
           output: "No search results found. Please try a different query.",
           title: `Web search: ${params.query}`,
-          metadata: {},
+          metadata: { titles: [] },
         }
       } catch (error) {
         clearTimeout()

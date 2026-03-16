@@ -4,6 +4,13 @@ import { createStore } from "solid-js/store"
 import { useTheme } from "../../context/theme"
 import { Locale } from "@/util/locale"
 import path from "path"
+import { type ScrollAcceleration } from "@opentui/core"
+
+class SlowScroll implements ScrollAcceleration {
+  tick(_now?: number): number { return 1 }
+  reset(): void {}
+}
+const slowScroll = new SlowScroll()
 import type { AssistantMessage } from "@defcode/sdk/v2"
 import { Global } from "@/global"
 import { Installation } from "@/installation"
@@ -14,11 +21,15 @@ import { useKV } from "../../context/kv"
 import { TodoItem } from "../../component/todo-item"
 import { TaskProgress } from "../../component/task-progress"
 import { Provider } from "@/provider/provider"
+import { useSDK } from "@tui/context/sdk"
+import { useLocal } from "@tui/context/local"
 
 export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const sync = useSync()
   const { theme } = useTheme()
   const route = useRoute()
+  const sdk = useSDK()
+  const local = useLocal()
   const session = createMemo(() => sync.session.get(props.sessionID)!)
   const diff = createMemo(() => sync.data.session_diff[props.sessionID] ?? [])
   const todo = createMemo(() => sync.data.todo[props.sessionID] ?? [])
@@ -64,6 +75,14 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     }
   })
 
+  const stats = createMemo(() => {
+    const msgCount = messages().filter((x) => x.role === "user" || x.role === "assistant").length
+    const allParts = messages().flatMap((m) => sync.data.part[m.id] ?? [])
+    const toolCalls = allParts.filter((p) => p.type === "tool").length
+    const filesRead = allParts.filter((p) => p.type === "tool" && (p as any).tool === "read").length
+    return { msgCount, toolCalls, filesRead }
+  })
+
   const directory = useDirectory()
   const kv = useKV()
 
@@ -86,6 +105,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       >
         <scrollbox
           flexGrow={1}
+          scrollAcceleration={slowScroll}
           verticalScrollbarOptions={{
             trackOptions: {
               backgroundColor: theme.background,
@@ -107,12 +127,45 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                 <b>Context</b>
               </text>
               <text fg={theme.textMuted}>{context()?.tokens ?? 0} tokens</text>
-              <text fg={theme.textMuted}>{context()?.percentage ?? 0}% used</text>
+              <text>
+                {(() => {
+                  const pct = context()?.percentage ?? 0
+                  const barWidth = 34
+                  const filled = Math.round((pct / 100) * barWidth)
+                  const empty = barWidth - filled
+                  const color = pct >= 90 ? theme.error : pct >= 70 ? theme.warning : theme.success
+                  return (
+                    <>
+                      <span style={{ fg: color }}>{"█".repeat(filled)}</span>
+                      <span style={{ fg: theme.backgroundElement }}>{"░".repeat(empty)}</span>
+                      <span style={{ fg: theme.textMuted }}> {pct}%</span>
+                    </>
+                  )
+                })()}
+              </text>
+              <Show when={(context()?.percentage ?? 0) >= 90}>
+                <text
+                  fg={theme.error}
+                  onMouseUp={() => {
+                    const model = local.model.current()
+                    if (!model) return
+                    sdk.client.session.summarize({
+                      sessionID: props.sessionID,
+                      modelID: model.modelID,
+                      providerID: model.providerID,
+                    })
+                  }}
+                >
+                  ⚠ Compact context
+                </text>
+              </Show>
               <Show when={!Provider.HIDE_MODEL_SELECTOR}>
                 <text fg={theme.textMuted}>{cost()} spent</text>
               </Show>
+              <text fg={theme.textMuted}>
+                {stats().msgCount} msgs · {stats().toolCalls} tool calls · {stats().filesRead} files read
+              </text>
             </box>
-            <TaskProgress sessionID={props.sessionID} />
             <Show when={mcpEntries().length > 0}>
               <box>
                 <box
@@ -271,6 +324,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                 </Show>
               )
             })()}
+            <TaskProgress sessionID={props.sessionID} />
             {(() => {
               const subagents = createMemo(() =>
                 sync.data.session
@@ -432,6 +486,21 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           <text fg={theme.textMuted}>
             <span style={{ fg: theme.success }}>•</span> <b>Definable</b> {Installation.VERSION}
           </text>
+          {(() => {
+            const keybind = useKeybind()
+            return (
+              <box flexDirection="row" gap={2}>
+                <Show when={local.agent.list().length > 1}>
+                  <text fg={theme.text}>
+                    {keybind.print("agent_cycle")} <span style={{ fg: theme.textMuted }}>agents</span>
+                  </text>
+                </Show>
+                <text fg={theme.text}>
+                  {keybind.print("command_list")} <span style={{ fg: theme.textMuted }}>commands</span>
+                </text>
+              </box>
+            )
+          })()}
         </box>
       </box>
     </Show>

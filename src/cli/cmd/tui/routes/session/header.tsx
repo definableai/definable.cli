@@ -1,7 +1,6 @@
 import { type Accessor, createMemo, createSignal, Match, Show, Switch } from "solid-js"
 import { useRouteData } from "@tui/context/route"
 import { useSync } from "@tui/context/sync"
-import { pipe, sumBy } from "remeda"
 import { useTheme } from "@tui/context/theme"
 import { SplitBorder } from "@tui/component/border"
 import type { AssistantMessage, Session } from "@defcode/sdk/v2"
@@ -18,12 +17,12 @@ const Title = (props: { session: Accessor<Session> }) => {
   )
 }
 
-const ContextInfo = (props: { context: Accessor<string | undefined>; cost: Accessor<string> }) => {
+const ContextInfo = (props: { context: Accessor<string | undefined> }) => {
   const { theme } = useTheme()
   return (
     <Show when={props.context()}>
       <text fg={theme.textMuted} wrapMode="none" flexShrink={0}>
-        {props.context()} ({props.cost()})
+        {props.context()}
       </text>
     </Show>
   )
@@ -34,17 +33,6 @@ export function Header() {
   const sync = useSync()
   const session = createMemo(() => sync.session.get(route.sessionID)!)
   const messages = createMemo(() => sync.data.message[route.sessionID] ?? [])
-
-  const cost = createMemo(() => {
-    const total = pipe(
-      messages(),
-      sumBy((x) => (x.role === "assistant" ? x.cost : 0)),
-    )
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(total)
-  })
 
   const context = createMemo(() => {
     const last = messages().findLast((x) => x.role === "assistant" && x.tokens.output > 0) as AssistantMessage
@@ -57,6 +45,20 @@ export function Header() {
       result += "  " + Math.round((total / model.limit.context) * 100) + "%"
     }
     return result
+  })
+
+  const breadcrumb = createMemo(() => {
+    const cur = session()
+    if (!cur?.parentID) return cur?.title ?? ""
+    const all = sync.data.session
+    const parts: string[] = []
+    let node: Session | undefined = cur
+    while (node) {
+      parts.unshift(node.title)
+      if (!node.parentID) break
+      node = all.find((x) => x.id === node!.parentID)
+    }
+    return parts.join(" › ")
   })
 
   const { theme } = useTheme()
@@ -83,10 +85,10 @@ export function Header() {
           <Match when={session()?.parentID}>
             <box flexDirection="column" gap={1}>
               <box flexDirection={narrow() ? "column" : "row"} justifyContent="space-between" gap={narrow() ? 1 : 0}>
-                <text fg={theme.text}>
-                  <b>Subagent session</b>
+                <text fg={theme.text} wrapMode="none">
+                  {breadcrumb()}
                 </text>
-                <ContextInfo context={context} cost={cost} />
+                <ContextInfo context={context} />
               </box>
               <box flexDirection="row" gap={2}>
                 <box
@@ -125,7 +127,7 @@ export function Header() {
           <Match when={true}>
             <box flexDirection={narrow() ? "column" : "row"} justifyContent="space-between" gap={1}>
               <Title session={session} />
-              <ContextInfo context={context} cost={cost} />
+              <ContextInfo context={context} />
             </box>
           </Match>
         </Switch>

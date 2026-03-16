@@ -27,6 +27,8 @@ import seoAuditRaw from "./builtin/seo-audit/SKILL.md" with { type: "text" }
 import codeConnectComponentsRaw from "./builtin/code-connect-components/SKILL.md" with { type: "text" }
 import createDesignSystemRulesRaw from "./builtin/create-design-system-rules/SKILL.md" with { type: "text" }
 import implementDesignRaw from "./builtin/implement-design/SKILL.md" with { type: "text" }
+// -- Mobile --
+import reactNativeSkillsRaw from "./builtin/react-native-skills/SKILL.md" with { type: "text" }
 
 /**
  * Built-in skills that are always available, even in distributed builds.
@@ -63,6 +65,8 @@ export namespace Builtin {
     codeConnectComponentsRaw,
     createDesignSystemRulesRaw,
     implementDesignRaw,
+    // Mobile
+    reactNativeSkillsRaw,
   ]
 
   function parse(raw: string): Skill.Info {

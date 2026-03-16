@@ -64,6 +64,14 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     }
   })
 
+  const stats = createMemo(() => {
+    const msgCount = messages().filter((x) => x.role === "user" || x.role === "assistant").length
+    const allParts = messages().flatMap((m) => sync.data.part[m.id] ?? [])
+    const toolCalls = allParts.filter((p) => p.type === "tool").length
+    const filesRead = allParts.filter((p) => p.type === "tool" && (p as any).tool === "read").length
+    return { msgCount, toolCalls, filesRead }
+  })
+
   const directory = useDirectory()
   const kv = useKV()
 
@@ -107,12 +115,29 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                 <b>Context</b>
               </text>
               <text fg={theme.textMuted}>{context()?.tokens ?? 0} tokens</text>
-              <text fg={theme.textMuted}>{context()?.percentage ?? 0}% used</text>
+              <text>
+                {(() => {
+                  const pct = context()?.percentage ?? 0
+                  const barWidth = 34
+                  const filled = Math.round((pct / 100) * barWidth)
+                  const empty = barWidth - filled
+                  const color = pct >= 90 ? theme.error : pct >= 70 ? theme.warning : theme.success
+                  return (
+                    <>
+                      <span style={{ fg: color }}>{"█".repeat(filled)}</span>
+                      <span style={{ fg: theme.backgroundElement }}>{"░".repeat(empty)}</span>
+                      <span style={{ fg: theme.textMuted }}> {pct}%</span>
+                    </>
+                  )
+                })()}
+              </text>
               <Show when={!Provider.HIDE_MODEL_SELECTOR}>
                 <text fg={theme.textMuted}>{cost()} spent</text>
               </Show>
+              <text fg={theme.textMuted}>
+                {stats().msgCount} msgs · {stats().toolCalls} tool calls · {stats().filesRead} files read
+              </text>
             </box>
-            <TaskProgress sessionID={props.sessionID} />
             <Show when={mcpEntries().length > 0}>
               <box>
                 <box
@@ -271,6 +296,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                 </Show>
               )
             })()}
+            <TaskProgress sessionID={props.sessionID} />
             {(() => {
               const subagents = createMemo(() =>
                 sync.data.session

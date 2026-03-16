@@ -14,7 +14,7 @@ export async function handle({ configPath, addMcpToConfig }: McpBuiltin.AddConte
 
   const mcpConfig: Config.Mcp = {
     type: "local",
-    command: headed ? [...PLAYWRIGHT_COMMAND, "--headed"] : PLAYWRIGHT_COMMAND,
+    command: headed ? PLAYWRIGHT_COMMAND : [...PLAYWRIGHT_COMMAND, "--headless"],
   }
 
   await addMcpToConfig(PLAYWRIGHT.name, mcpConfig, configPath)

@@ -67,6 +67,7 @@ import { LANGUAGE_EXTENSIONS } from "@/lsp/language"
 import parsers from "../../../../../../parsers-config.ts"
 import { Clipboard } from "../../util/clipboard.ts"
 import { Toast, useToast } from "../../ui/toast.tsx"
+import { SubagentNotifications } from "../../component/subagent-notifications.tsx"
 import { useKV } from "../../context/kv.tsx"
 import { Editor } from "../../util/editor.ts"
 import stripAnsi from "strip-ansi"
@@ -1176,6 +1177,9 @@ export function Session() {
             </box>
           </Show>
           <Toast />
+          <Show when={!session()?.parentID}>
+            <SubagentNotifications sessionID={route.sessionID} />
+          </Show>
         </box>
         <Show when={sidebarVisible()}>
           <Switch>
@@ -1961,6 +1965,8 @@ function Task(props: ToolProps<typeof TaskTool>) {
   const { navigate } = useRoute()
   const local = useLocal()
   const sync = useSync()
+  const ctx = use()
+  const [expanded, setExpanded] = createSignal(false)
 
   onMount(() => {
     if (props.metadata.sessionId && !sync.data.message[props.metadata.sessionId]?.length)
@@ -1988,12 +1994,37 @@ function Task(props: ToolProps<typeof TaskTool>) {
     return assistant - first
   })
 
-  const content = createMemo(() => {
+  // Get the latest text from the subagent — last lines for live streaming feel
+  const latestText = createMemo(() => {
+    const lastAssistant = messages().findLast((m) => m.role === "assistant")
+    if (!lastAssistant) return ""
+    const parts = sync.data.part[lastAssistant.id] ?? []
+    const textPart = parts.findLast((p) => p.type === "text" && (p as any).text?.trim())
+    if (!textPart || textPart.type !== "text") return ""
+    return (textPart as any).text.trim() as string
+  })
+
+  // Show last N lines for the collapsed preview
+  const previewLines = createMemo(() => {
+    const text = latestText()
+    if (!text) return []
+    const lines = text.split("\n").filter((l: string) => l.trim().length > 0)
+    return lines.slice(-3).map((l: string) => Locale.truncate(l.trim(), 60))
+  })
+
+  // Show more lines when expanded
+  const expandedLines = createMemo(() => {
+    const text = latestText()
+    if (!text) return []
+    const lines = text.split("\n").filter((l: string) => l.trim().length > 0)
+    return lines.slice(-10).map((l: string) => Locale.truncate(l.trim(), 80))
+  })
+
+  const header = createMemo(() => {
     if (!props.input.description) return ""
     let content = [`Task ${props.input.description}`]
 
     if (isRunning() && tools().length > 0) {
-      // content[0] += ` · ${tools().length} toolcalls`
       if (current()) content.push(`↳ ${Locale.titlecase(current()!.tool)} ${(current()!.state as any).title}`)
       else content.push(`↳ ${tools().length} toolcalls`)
     }
@@ -2005,21 +2036,54 @@ function Task(props: ToolProps<typeof TaskTool>) {
     return content.join("\n")
   })
 
+  const hasPreview = createMemo(() => previewLines().length > 0)
+
   return (
-    <InlineTool
-      icon="│"
-      spinner={isRunning()}
-      complete={props.input.description}
-      pending="Delegating..."
-      part={props.part}
-      onClick={() => {
-        if (props.metadata.sessionId) {
-          navigate({ type: "session", sessionID: props.metadata.sessionId })
-        }
-      }}
-    >
-      {content()}
-    </InlineTool>
+    <box marginTop={1} paddingLeft={3}>
+      <box
+        flexDirection="row"
+        gap={1}
+        onMouseUp={(e) => {
+          if (props.metadata.sessionId) {
+            navigate({ type: "session", sessionID: props.metadata.sessionId })
+          }
+        }}
+      >
+        <Show
+          when={!isRunning()}
+          fallback={<Spinner color={theme.text}>{header()}</Spinner>}
+        >
+          <text fg={props.part.state.status === "completed" ? theme.textMuted : theme.text}>
+            <span style={{ bold: true }}>│</span> {header()}
+          </text>
+        </Show>
+      </box>
+
+      {/* Live preview of subagent output */}
+      <Show when={hasPreview()}>
+        <box
+          marginTop={0}
+          paddingLeft={2}
+          border={["left"]}
+          customBorderChars={SplitBorder.customBorderChars}
+          borderColor={isRunning() ? theme.backgroundElement : theme.backgroundPanel}
+          onMouseUp={() => setExpanded((v) => !v)}
+        >
+          <For each={expanded() ? expandedLines() : previewLines()}>
+            {(line) => (
+              <text fg={theme.textMuted} wrapMode="none">
+                {line}
+              </text>
+            )}
+          </For>
+          <Show when={latestText().split("\n").filter((l: string) => l.trim()).length > 3}>
+            <text fg={theme.backgroundElement}>
+              {expanded() ? "▲ collapse" : "▼ show more"}
+            </text>
+          </Show>
+        </box>
+      </Show>
+    </box>
   )
 }
 

@@ -1,4 +1,4 @@
-import { createMemo, Match, onCleanup, onMount, Show, Switch } from "solid-js"
+import { createMemo, createSignal, Match, onCleanup, onMount, Show, Switch } from "solid-js"
 import { useTheme } from "../../context/theme"
 import { useSync } from "../../context/sync"
 import { useDirectory } from "../../context/directory"
@@ -6,6 +6,7 @@ import { useConnected } from "../../component/dialog-model"
 import { createStore } from "solid-js/store"
 import { useRoute } from "../../context/route"
 import { Provider } from "@/provider/provider"
+import { Locale } from "@/util/locale"
 
 export function Footer() {
   const { theme } = useTheme()
@@ -23,6 +24,37 @@ export function Footer() {
 
   const [store, setStore] = createStore({
     welcome: false,
+  })
+
+  // Elapsed timer: track how long the current agent turn has been running
+  const sessionID = createMemo(() => (route.data.type === "session" ? route.data.sessionID : undefined))
+  const isWorking = createMemo(() => {
+    const id = sessionID()
+    if (!id) return false
+    return sync.session.status(id) === "working"
+  })
+  const turnStartTime = createMemo(() => {
+    const id = sessionID()
+    if (!id || !isWorking()) return undefined
+    const messages = sync.data.message[id] ?? []
+    // Find the last user message — that's when the current turn started
+    const lastUser = messages.findLast((m) => m.role === "user")
+    return lastUser?.time.created
+  })
+
+  const [now, setNow] = createSignal(Date.now())
+
+  onMount(() => {
+    // Update every second for the elapsed timer
+    const timer = setInterval(() => setNow(Date.now()), 1000)
+    onCleanup(() => clearInterval(timer))
+  })
+
+  const elapsed = createMemo(() => {
+    const start = turnStartTime()
+    if (!start) return undefined
+    const diff = now() - start
+    return diff > 0 ? Locale.duration(diff) : undefined
   })
 
   onMount(() => {
@@ -82,6 +114,9 @@ export function Footer() {
                 </Switch>
                 {mcp()} MCP
               </text>
+            </Show>
+            <Show when={elapsed()}>
+              <text fg={theme.warning}>⏱ {elapsed()}</text>
             </Show>
             <text fg={theme.textMuted}>/status</text>
           </Match>

@@ -12,6 +12,7 @@ import { useRoute } from "../../context/route"
 import { useDirectory } from "../../context/directory"
 import { useKV } from "../../context/kv"
 import { TodoItem } from "../../component/todo-item"
+import { TaskProgress } from "../../component/task-progress"
 import { Provider } from "@/provider/provider"
 
 export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
@@ -111,6 +112,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                 <text fg={theme.textMuted}>{cost()} spent</text>
               </Show>
             </box>
+            <TaskProgress sessionID={props.sessionID} />
             <Show when={mcpEntries().length > 0}>
               <box>
                 <box

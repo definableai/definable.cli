@@ -4,6 +4,13 @@ import { createStore } from "solid-js/store"
 import { useTheme } from "../../context/theme"
 import { Locale } from "@/util/locale"
 import path from "path"
+import { type ScrollAcceleration } from "@opentui/core"
+
+class SlowScroll implements ScrollAcceleration {
+  tick(_now?: number): number { return 1 }
+  reset(): void {}
+}
+const slowScroll = new SlowScroll()
 import type { AssistantMessage } from "@defcode/sdk/v2"
 import { Global } from "@/global"
 import { Installation } from "@/installation"
@@ -14,11 +21,15 @@ import { useKV } from "../../context/kv"
 import { TodoItem } from "../../component/todo-item"
 import { TaskProgress } from "../../component/task-progress"
 import { Provider } from "@/provider/provider"
+import { useSDK } from "@tui/context/sdk"
+import { useLocal } from "@tui/context/local"
 
 export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const sync = useSync()
   const { theme } = useTheme()
   const route = useRoute()
+  const sdk = useSDK()
+  const local = useLocal()
   const session = createMemo(() => sync.session.get(props.sessionID)!)
   const diff = createMemo(() => sync.data.session_diff[props.sessionID] ?? [])
   const todo = createMemo(() => sync.data.todo[props.sessionID] ?? [])
@@ -94,6 +105,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       >
         <scrollbox
           flexGrow={1}
+          scrollAcceleration={slowScroll}
           verticalScrollbarOptions={{
             trackOptions: {
               backgroundColor: theme.background,
@@ -131,6 +143,22 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                   )
                 })()}
               </text>
+              <Show when={(context()?.percentage ?? 0) >= 90}>
+                <text
+                  fg={theme.error}
+                  onMouseUp={() => {
+                    const model = local.model.current()
+                    if (!model) return
+                    sdk.client.session.summarize({
+                      sessionID: props.sessionID,
+                      modelID: model.modelID,
+                      providerID: model.providerID,
+                    })
+                  }}
+                >
+                  ⚠ Compact context
+                </text>
+              </Show>
               <Show when={!Provider.HIDE_MODEL_SELECTOR}>
                 <text fg={theme.textMuted}>{cost()} spent</text>
               </Show>
@@ -458,6 +486,21 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           <text fg={theme.textMuted}>
             <span style={{ fg: theme.success }}>•</span> <b>Definable</b> {Installation.VERSION}
           </text>
+          {(() => {
+            const keybind = useKeybind()
+            return (
+              <box flexDirection="row" gap={2}>
+                <Show when={local.agent.list().length > 1}>
+                  <text fg={theme.text}>
+                    {keybind.print("agent_cycle")} <span style={{ fg: theme.textMuted }}>agents</span>
+                  </text>
+                </Show>
+                <text fg={theme.text}>
+                  {keybind.print("command_list")} <span style={{ fg: theme.textMuted }}>commands</span>
+                </text>
+              </box>
+            )
+          })()}
         </box>
       </box>
     </Show>

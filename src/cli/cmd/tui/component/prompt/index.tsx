@@ -1,5 +1,5 @@
 import { BoxRenderable, TextareaRenderable, MouseEvent, PasteEvent, t, dim, fg } from "@opentui/core"
-import { createEffect, createMemo, type JSX, onMount, createSignal, onCleanup, on, Show, Switch, Match, For } from "solid-js"
+import { createEffect, createMemo, type JSX, onMount, createSignal, onCleanup, on, Show, For } from "solid-js"
 import "opentui-spinner/solid"
 import path from "path"
 import { Filesystem } from "@/util/filesystem"
@@ -30,7 +30,7 @@ import { createColors, createFrames } from "../../ui/spinner"
 import { useDialog } from "@tui/ui/dialog"
 import { DialogProvider as DialogProviderConnect } from "../dialog-provider"
 import { DialogAlert } from "../../ui/dialog-alert"
-import { useToast } from "../../ui/toast"
+import { useToast, type ToastContext } from "../../ui/toast"
 import { useKV } from "../../context/kv"
 import { useTextareaKeybindings } from "../textarea-keybindings"
 import { DialogSkill } from "../dialog-skill"
@@ -70,7 +70,7 @@ export function Prompt(props: PromptProps) {
   const route = useRoute()
   const sync = useSync()
   const dialog = useDialog()
-  const toast = useToast()
+  const toast: ToastContext = useToast()
   const status = createMemo(() => sync.data.session_status?.[props.sessionID ?? ""] ?? { type: "idle" })
   const history = usePromptHistory()
   const stash = usePromptStash()
@@ -997,33 +997,35 @@ export function Prompt(props: PromptProps) {
               cursorColor={theme.text}
               syntaxStyle={syntax()}
             />
-            <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1}>
+            <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1} justifyContent="space-between">
               <Show
                 when={store.mode === "normal"}
                 fallback={
                   <text fg={highlight()}>Shell</text>
                 }
               >
-                <box flexDirection="row">
-                  <For each={local.agent.list()}>
-                    {(agent, index) => {
-                      const isActive = createMemo(() => local.agent.current().name === agent.name)
-                      const color = createMemo(() => local.agent.color(agent.name))
-                      return (
-                        <>
-                          <text
-                            fg={isActive() ? color() : theme.textMuted}
-                            onMouseUp={() => local.agent.set(agent.name)}
-                          >
-                            {Locale.titlecase(agent.name)}
-                          </text>
-                          <Show when={index() < local.agent.list().length - 1}>
-                            <text fg={theme.textMuted}> / </text>
-                          </Show>
-                        </>
-                      )
-                    }}
-                  </For>
+                <box flexDirection="row" gap={1} alignItems="center">
+                  <box flexDirection="row" gap={1}>
+                    <For each={local.agent.list()}>
+                      {(agent, index) => {
+                        const isActive = createMemo(() => local.agent.current().name === agent.name)
+                        const color = createMemo(() => local.agent.color(agent.name))
+                        return (
+                          <>
+                            <text
+                              fg={isActive() ? color() : theme.textMuted}
+                              onMouseUp={() => local.agent.set(agent.name)}
+                            >
+                              {Locale.titlecase(agent.name)}
+                            </text>
+                            <Show when={index() < local.agent.list().length - 1}>
+                              <text fg={theme.textMuted}> / </text>
+                            </Show>
+                          </>
+                        )
+                      }}
+                    </For>
+                  </box>
                 </box>
                 <Show when={!Provider.HIDE_MODEL_SELECTOR}>
                   <box flexDirection="row" gap={1}>
@@ -1039,6 +1041,28 @@ export function Prompt(props: PromptProps) {
                     </Show>
                   </box>
                 </Show>
+              </Show>
+              <Show when={status().type !== "idle"}>
+                <box flexDirection="row" gap={2} alignItems="center">
+                  <Show when={kv.get("animations_enabled", true)} fallback={<text fg={theme.textMuted}>[⋯]</text>}>
+                    <spinner color={spinnerDef().color} frames={spinnerDef().frames} interval={40} />
+                  </Show>
+                  <text fg={store.interrupt > 0 ? theme.primary : theme.textMuted}>
+                    esc{" "}
+                    <span style={{ fg: store.interrupt > 0 ? theme.primary : theme.textMuted }}>
+                      {store.interrupt > 0 ? "again to interrupt" : "interrupt"}
+                    </span>
+                  </text>
+                  <text
+                    fg={theme.error}
+                    onMouseUp={() => {
+                      if (!props.sessionID) return
+                      sdk.client.session.abort({ sessionID: props.sessionID }).catch(() => {})
+                    }}
+                  >
+                    ■ Stop
+                  </text>
+                </box>
               </Show>
             </box>
           </box>
@@ -1069,120 +1093,62 @@ export function Prompt(props: PromptProps) {
             }
           />
         </box>
-        <box flexDirection="row" justifyContent="space-between">
-          <Show when={status().type !== "idle"} fallback={<text />}>
-            <box
-              flexDirection="row"
-              gap={1}
-              flexGrow={1}
-              justifyContent={status().type === "retry" ? "space-between" : "flex-start"}
-            >
-              <box flexShrink={0} flexDirection="row" gap={1}>
-                <box marginLeft={1}>
-                  <Show when={kv.get("animations_enabled", true)} fallback={<text fg={theme.textMuted}>[⋯]</text>}>
-                    <spinner color={spinnerDef().color} frames={spinnerDef().frames} interval={40} />
-                  </Show>
+        <Show when={status().type === "retry"}>
+          <box flexDirection="row" gap={1} marginLeft={2}>
+            {(() => {
+              const retry = createMemo(() => {
+                const s = status()
+                if (s.type !== "retry") return
+                return s
+              })
+              const message = createMemo(() => {
+                const r = retry()
+                if (!r) return
+                if (r.message.includes("exceeded your current quota") && r.message.includes("gemini"))
+                  return "gemini is way too hot right now"
+                if (r.message.length > 80) return r.message.slice(0, 80) + "..."
+                return r.message
+              })
+              const isTruncated = createMemo(() => {
+                const r = retry()
+                if (!r) return false
+                return r.message.length > 120
+              })
+              const [seconds, setSeconds] = createSignal(0)
+              onMount(() => {
+                const timer = setInterval(() => {
+                  const next = retry()?.next
+                  if (next) setSeconds(Math.round((next - Date.now()) / 1000))
+                }, 1000)
+                onCleanup(() => { clearInterval(timer) })
+              })
+              const handleMessageClick = () => {
+                const r = retry()
+                if (!r) return
+                if (isTruncated()) DialogAlert.show(dialog, "Retry Error", r.message)
+              }
+              const retryText = () => {
+                const r = retry()
+                if (!r) return ""
+                const baseMessage = message()
+                const truncatedHint = isTruncated() ? " (click to expand)" : ""
+                const duration = formatDuration(seconds())
+                const retryInfo = ` [retrying ${duration ? `in ${duration} ` : ""}attempt #${r.attempt}]`
+                return baseMessage + truncatedHint + retryInfo
+              }
+              return (
+                <box onMouseUp={handleMessageClick}>
+                  <text fg={theme.error}>{retryText()}</text>
                 </box>
-                <box flexDirection="row" gap={1} flexShrink={0}>
-                  {(() => {
-                    const retry = createMemo(() => {
-                      const s = status()
-                      if (s.type !== "retry") return
-                      return s
-                    })
-                    const message = createMemo(() => {
-                      const r = retry()
-                      if (!r) return
-                      if (r.message.includes("exceeded your current quota") && r.message.includes("gemini"))
-                        return "gemini is way too hot right now"
-                      if (r.message.length > 80) return r.message.slice(0, 80) + "..."
-                      return r.message
-                    })
-                    const isTruncated = createMemo(() => {
-                      const r = retry()
-                      if (!r) return false
-                      return r.message.length > 120
-                    })
-                    const [seconds, setSeconds] = createSignal(0)
-                    onMount(() => {
-                      const timer = setInterval(() => {
-                        const next = retry()?.next
-                        if (next) setSeconds(Math.round((next - Date.now()) / 1000))
-                      }, 1000)
-
-                      onCleanup(() => {
-                        clearInterval(timer)
-                      })
-                    })
-                    const handleMessageClick = () => {
-                      const r = retry()
-                      if (!r) return
-                      if (isTruncated()) {
-                        DialogAlert.show(dialog, "Retry Error", r.message)
-                      }
-                    }
-
-                    const retryText = () => {
-                      const r = retry()
-                      if (!r) return ""
-                      const baseMessage = message()
-                      const truncatedHint = isTruncated() ? " (click to expand)" : ""
-                      const duration = formatDuration(seconds())
-                      const retryInfo = ` [retrying ${duration ? `in ${duration} ` : ""}attempt #${r.attempt}]`
-                      return baseMessage + truncatedHint + retryInfo
-                    }
-
-                    return (
-                      <Show when={retry()}>
-                        <box onMouseUp={handleMessageClick}>
-                          <text fg={theme.error}>{retryText()}</text>
-                        </box>
-                      </Show>
-                    )
-                  })()}
-                </box>
-              </box>
-              <box flexDirection="row" gap={2} flexWrap="wrap">
-                <text
-                  fg={theme.error}
-                  onMouseUp={() => {
-                    if (!props.sessionID) return
-                    sdk.client.session.abort({ sessionID: props.sessionID }).catch(() => {})
-                  }}
-                >
-                  ■ Stop
-                </text>
-                <text fg={store.interrupt > 0 ? theme.primary : theme.textMuted}>
-                  esc{" "}
-                  <span style={{ fg: store.interrupt > 0 ? theme.primary : theme.textMuted }}>
-                    {store.interrupt > 0 ? "again to interrupt" : "interrupt"}
-                  </span>
-                </text>
-              </box>
-            </box>
-          </Show>
-          <Show when={status().type !== "retry"}>
-            <box gap={2} flexDirection="row" flexWrap="wrap">
-              <Switch>
-                <Match when={store.mode === "normal"}>
-                  <Show when={local.agent.list().length > 1}>
-                    <text fg={theme.text}>
-                      {keybind.print("agent_cycle")} <span style={{ fg: theme.textMuted }}>agents</span>
-                    </text>
-                  </Show>
-                  <text fg={theme.text}>
-                    {keybind.print("command_list")} <span style={{ fg: theme.textMuted }}>commands</span>
-                  </text>
-                </Match>
-                <Match when={store.mode === "shell"}>
-                  <text fg={theme.text}>
-                    esc <span style={{ fg: theme.textMuted }}>exit shell mode</span>
-                  </text>
-                </Match>
-              </Switch>
-            </box>
-          </Show>
-        </box>
+              )
+            })()}
+          </box>
+        </Show>
+        <Show when={store.mode === "shell"}>
+          <box flexDirection="row" gap={2}>
+            <text fg={theme.text}>esc <span style={{ fg: theme.textMuted }}>exit shell mode</span></text>
+          </box>
+        </Show>
       </box>
     </>
   )

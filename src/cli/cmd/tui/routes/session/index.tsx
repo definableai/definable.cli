@@ -7,6 +7,7 @@ import {
   For,
   Match,
   on,
+  onCleanup,
   onMount,
   Show,
   Switch,
@@ -146,6 +147,49 @@ export function Session() {
 
   const lastAssistant = createMemo(() => {
     return messages().findLast((x) => x.role === "assistant")
+  })
+
+  const lastFooter = createMemo(() => {
+    const msg = lastAssistant() as AssistantMessage | undefined
+    if (!msg) return null
+    const isFinal = !!(msg.finish && !["tool-calls", "unknown"].includes(msg.finish))
+    const isAborted = msg.error?.name === "MessageAbortedError"
+    const duration = (() => {
+      if (!isFinal || !msg.time?.completed) return 0
+      const user = messages().find((x) => x.role === "user" && x.id === msg.parentID)
+      if (!user || !user.time) return 0
+      return msg.time.completed - user.time.created
+    })()
+    const runningTool = (() => {
+      return messages()
+        .flatMap((m) => sync.data.part[m.id] ?? [])
+        .findLast((p) => p.type === "tool" && (p as ToolPart).state.status === "running") as ToolPart | undefined
+    })()
+    const activity = (() => {
+      if (msg.mode === "compaction") return "Compacting"
+      if (runningTool) {
+        switch (runningTool.tool) {
+          case "todowrite": return "Planning"
+          case "websearch":
+          case "codesearch": return "Searching"
+          case "bash": return "Running"
+          case "write":
+          case "edit":
+          case "apply_patch": return "Writing"
+          case "read": return "Reading"
+        }
+      }
+      const parts = sync.data.part[msg.id] ?? []
+      if (parts.some((p) => p.type === "reasoning")) return "Thinking"
+      return "Working"
+    })()
+    const toolTitle = runningTool
+      ? ((runningTool.state as any).title as string | undefined) ?? undefined
+      : undefined
+    const elapsedStart = runningTool
+      ? (runningTool.state as any).time?.start as number | undefined
+      : undefined
+    return { msg, isFinal, isAborted, duration, activity, toolTitle, elapsedStart }
   })
 
   const dimensions = useTerminalDimensions()
@@ -314,6 +358,21 @@ export function Session() {
       scroll.scrollTo(scroll.scrollHeight)
     }, 50)
   }
+
+  const [atBottom, setAtBottom] = createSignal(true)
+  createEffect(() => {
+    const interval = setInterval(() => {
+      if (!scroll || scroll.isDestroyed) return
+      setAtBottom(scroll.y >= scroll.scrollHeight - scroll.height - 5)
+    }, 200)
+    onCleanup(() => clearInterval(interval))
+  })
+
+  const [now, setNow] = createSignal(Date.now())
+  createEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000)
+    onCleanup(() => clearInterval(interval))
+  })
 
   const local = useLocal()
 
@@ -1151,6 +1210,47 @@ export function Session() {
                 )}
               </For>
             </scrollbox>
+            <Show when={lastFooter()}>
+              {(footer) => (
+                <box
+                  flexShrink={0}
+                  flexDirection="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  paddingLeft={3}
+                  paddingRight={2}
+                  marginTop={1}
+                >
+                  <Switch>
+                    <Match when={footer().isFinal || footer().isAborted}>
+                      <text>
+                        <span style={{ fg: footer().isAborted ? theme.textMuted : local.agent.color(footer().msg.agent) }}>✓ </span>
+                        <span style={{ fg: theme.text }}>{Locale.titlecase(footer().msg.mode)}</span>
+                        <Show when={!Provider.HIDE_MODEL_SELECTOR}>
+                          <span style={{ fg: theme.textMuted }}> · {footer().msg.modelID}</span>
+                        </Show>
+                        <Show when={footer().duration > 0}>
+                          <span style={{ fg: theme.textMuted }}> · {Locale.duration(footer().duration)}</span>
+                        </Show>
+                        <Show when={footer().isAborted}>
+                          <span style={{ fg: theme.textMuted }}> · interrupted</span>
+                        </Show>
+                      </text>
+                    </Match>
+                    <Match when={true}>
+                      <Spinner color={local.agent.color(footer().msg.agent)}>
+                        {footer().activity}
+                        {footer().toolTitle ? ` · ${Locale.truncate(footer().toolTitle!, 40)}` : ""}
+                        {footer().elapsedStart ? ` · ${Locale.duration(now() - footer().elapsedStart!)}` : ""}
+                      </Spinner>
+                    </Match>
+                  </Switch>
+                  <Show when={!atBottom()}>
+                    <text fg={theme.textMuted} onMouseUp={() => toBottom()}>↓ jump to latest</text>
+                  </Show>
+                </box>
+              )}
+            </Show>
             <box flexShrink={0}>
               <Show when={permissions().length > 0}>
                 <PermissionPrompt request={permissions()[0]} />
@@ -1364,42 +1464,32 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
           <text fg={theme.textMuted}>{props.message.error?.data.message}</text>
         </box>
       </Show>
-      <Switch>
-        <Match when={props.last && !final() && props.message.error?.name !== "MessageAbortedError"}>
-          <box paddingLeft={3}>
-            <text marginTop={1}>
-              <span style={{ fg: local.agent.color(props.message.agent) }}>◌ </span>
-              <span style={{ fg: theme.textMuted }}>{Locale.titlecase(props.message.mode)}...</span>
-            </text>
-          </box>
-        </Match>
-        <Match when={final() || props.message.error?.name === "MessageAbortedError"}>
-          <box paddingLeft={3}>
-            <text marginTop={1}>
-              <span
-                style={{
-                  fg:
-                    props.message.error?.name === "MessageAbortedError"
-                      ? theme.textMuted
-                      : local.agent.color(props.message.agent),
-                }}
-              >
-                ✓{" "}
-              </span>{" "}
-              <span style={{ fg: theme.text }}>{Locale.titlecase(props.message.mode)}</span>
-              <Show when={!Provider.HIDE_MODEL_SELECTOR}>
-                <span style={{ fg: theme.textMuted }}> · {props.message.modelID}</span>
-              </Show>
-              <Show when={duration()}>
-                <span style={{ fg: theme.textMuted }}> · {Locale.duration(duration())}</span>
-              </Show>
-              <Show when={props.message.error?.name === "MessageAbortedError"}>
-                <span style={{ fg: theme.textMuted }}> · interrupted</span>
-              </Show>
-            </text>
-          </box>
-        </Match>
-      </Switch>
+      <Show when={!props.last && (final() || props.message.error?.name === "MessageAbortedError")}>
+        <box paddingLeft={3}>
+          <text marginTop={1}>
+            <span
+              style={{
+                fg:
+                  props.message.error?.name === "MessageAbortedError"
+                    ? theme.textMuted
+                    : local.agent.color(props.message.agent),
+              }}
+            >
+              ✓{" "}
+            </span>{" "}
+            <span style={{ fg: theme.text }}>{Locale.titlecase(props.message.mode)}</span>
+            <Show when={!Provider.HIDE_MODEL_SELECTOR}>
+              <span style={{ fg: theme.textMuted }}> · {props.message.modelID}</span>
+            </Show>
+            <Show when={duration()}>
+              <span style={{ fg: theme.textMuted }}> · {Locale.duration(duration())}</span>
+            </Show>
+            <Show when={props.message.error?.name === "MessageAbortedError"}>
+              <span style={{ fg: theme.textMuted }}> · interrupted</span>
+            </Show>
+          </text>
+        </box>
+      </Show>
     </>
   )
 }
@@ -1798,7 +1888,13 @@ function Bash(props: ToolProps<typeof BashTool>) {
     const desc = props.input.description ?? "Shell"
     const wd = workdirDisplay()
     const base = wd && !desc.includes(wd) ? `# ${desc} in ${wd}` : `# ${desc}`
-    if (!isRunning() && lineCount() > 0) return `${base} · ${lineCount()} ${lineCount() === 1 ? "line" : "lines"}`
+    if (!isRunning() && lineCount() > 0) {
+      const originalLines = (props.metadata as any).originalLines as number | undefined
+      const lineLabel = originalLines && originalLines > lineCount()
+        ? `${lineCount()} of ${originalLines.toLocaleString()} lines`
+        : `${lineCount()} ${lineCount() === 1 ? "line" : "lines"}`
+      return `${base} · ${lineLabel}`
+    }
     return base
   })
 

@@ -71,6 +71,7 @@ export namespace Tool {
           if (result.metadata.truncated !== undefined) {
             return result
           }
+          const originalLines = result.output.split("\n").length
           const truncated = await Truncate.output(result.output, {}, initCtx?.agent)
           return {
             ...result,
@@ -78,7 +79,7 @@ export namespace Tool {
             metadata: {
               ...result.metadata,
               truncated: truncated.truncated,
-              ...(truncated.truncated && { outputPath: truncated.outputPath }),
+              ...(truncated.truncated && { outputPath: truncated.outputPath, originalLines }),
             },
           }
         }

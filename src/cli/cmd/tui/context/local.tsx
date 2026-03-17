@@ -382,7 +382,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       },
     }
 
-    // Automatically update model when agent changes
+    // Automatically update model and variant when agent changes
     createEffect(() => {
       const value = agent.current()
       if (value.model) {
@@ -397,6 +397,9 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
             message: `Agent ${value.name}'s configured model ${value.model.providerID}/${value.model.modelID} is not valid`,
             duration: 3000,
           })
+      }
+      if (value.variant !== undefined) {
+        model.variant.set(value.variant)
       }
     })
 

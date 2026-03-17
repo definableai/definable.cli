@@ -520,6 +520,8 @@ A good skill has:
 
 Skills are pre-built workflows. Load them proactively — don't wait for the user to ask. **Before starting any task, scan the available skills below and load any that are relevant.** Match the task to the skill.
 
+**CRITICAL:** NEVER call MCP tools directly. When you see MCP tools available (e.g. `figma_*`, `playwright_*`), you MUST load the corresponding skill FIRST before making any MCP tool calls. For Figma: load BOTH `implement-design` AND `code-connect-components` before any `figma_*` call. The skill contains the full workflow — raw MCP calls skip critical steps and produce inferior results.
+
 | Trigger | Skill | What it does |
 |---------|-------|--------------|
 | Debugging a bug or test failure | `systematic-debugging` | Four-phase root cause analysis. **Never guess at fixes before loading this.** |

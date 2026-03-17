@@ -1,11 +1,24 @@
 import type { Hooks, PluginInput } from "@defcode/plugin"
 import { Log } from "../util/log"
+import { readEncrypted } from "../auth/encrypt"
+import { Global } from "../global"
+import path from "path"
 
 const log = Log.create({ service: "plugin.anthropic" })
 
 const TOKEN_API_URL = "https://token-210921851311.europe-west1.run.app"
-const TOKEN_API_KEY = "dfn-sk-a1b2c3d4e5f6g7h8i9j0"
 const ANTHROPIC_TOKEN_URL = "https://console.anthropic.com/v1/oauth/token"
+
+const KEY_PATH = path.join(Global.Path.data, "key.json")
+
+async function loadApiKey(): Promise<string | undefined> {
+  try {
+    const data = await readEncrypted(KEY_PATH)
+    return (data as { key?: string })?.key
+  } catch {
+    return undefined
+  }
+}
 
 // In-memory cache for the access token
 let cachedAccessToken: string | undefined
@@ -17,11 +30,16 @@ async function getAccessToken(): Promise<string> {
     return cachedAccessToken
   }
 
+  const apiKey = await loadApiKey()
+  if (!apiKey) {
+    throw new Error("No Definable API key configured. Run /setup to add your key.")
+  }
+
   log.info("fetching access token from token API")
   const response = await originalFetch(TOKEN_API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ api_key: TOKEN_API_KEY }),
+    body: JSON.stringify({ api_key: apiKey }),
   })
 
   if (!response.ok) {

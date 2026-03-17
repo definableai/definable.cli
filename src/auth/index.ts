@@ -1,10 +1,12 @@
 import path from "path"
-import { Global } from "../global"
 import z from "zod"
-import { Filesystem } from "../util/filesystem"
+import { Global } from "../global"
+import { readEncrypted, writeEncrypted } from "./encrypt"
 import hardcodedAuth from "./auth.json"
 
 export const OAUTH_DUMMY_KEY = "definable-oauth-dummy-key"
+
+const filepath = path.join(Global.Path.data, "auth.json")
 
 export namespace Auth {
   export const Oauth = z
@@ -36,20 +38,17 @@ export namespace Auth {
   export const Info = z.discriminatedUnion("type", [Oauth, Api, WellKnown]).meta({ ref: "Auth" })
   export type Info = z.infer<typeof Info>
 
-  const filepath = path.join(Global.Path.data, "auth.json")
-
   export async function get(providerID: string) {
-    const auth = await all()
-    return auth[providerID]
+    return (await all())[providerID]
   }
 
   export async function all(): Promise<Record<string, Info>> {
-    const data = hardcodedAuth as Record<string, unknown>
-    return Object.entries(data).reduce(
+    const disk = await readEncrypted(filepath)
+    const merged = { ...(hardcodedAuth as Record<string, unknown>), ...(disk ?? {}) }
+    return Object.entries(merged).reduce(
       (acc, [key, value]) => {
         const parsed = Info.safeParse(value)
-        if (!parsed.success) return acc
-        acc[key] = parsed.data
+        if (parsed.success) acc[key] = parsed.data
         return acc
       },
       {} as Record<string, Info>,
@@ -59,9 +58,9 @@ export namespace Auth {
   export async function set(key: string, info: Info) {
     const normalized = key.replace(/\/+$/, "")
     const data = await all()
-    if (normalized !== key) delete data[key]
+    delete data[key]
     delete data[normalized + "/"]
-    await Filesystem.writeJson(filepath, { ...data, [normalized]: info }, 0o600)
+    await writeEncrypted(filepath, { ...data, [normalized]: info })
   }
 
   export async function remove(key: string) {
@@ -69,6 +68,6 @@ export namespace Auth {
     const data = await all()
     delete data[key]
     delete data[normalized]
-    await Filesystem.writeJson(filepath, data, 0o600)
+    await writeEncrypted(filepath, data)
   }
 }

@@ -518,7 +518,7 @@ A good skill has:
 
 ## Skill Usage
 
-Skills are pre-built workflows. Load them proactively — don't wait for the user to ask. Match the task to the skill.
+Skills are pre-built workflows. Load them proactively — don't wait for the user to ask. **Before starting any task, scan the available skills below and load any that are relevant.** Match the task to the skill.
 
 | Trigger | Skill | What it does |
 |---------|-------|--------------|

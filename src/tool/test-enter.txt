@@ -1,0 +1,16 @@
+Use this tool to suggest switching to test agent for browser-based testing and QA.
+
+If the user explicitly mentions wanting to "test", "QA", "dogfood", or "check" a web application, ALWAYS call this tool first.
+
+This tool will ask the user if they want to switch to test agent.
+
+Call this tool when:
+- The user wants to test a web application or feature they just built
+- The user wants to QA, dogfood, or find bugs in a web app
+- The user asks you to verify a feature works in the browser
+- The user wants to run exploratory testing on any website
+
+Do NOT call this tool:
+- For unit tests or code-level testing (use build agent for that)
+- When the user explicitly wants to keep building
+- For non-browser testing tasks

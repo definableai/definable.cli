@@ -31,6 +31,15 @@ import reactNativeSkillsRaw from "./builtin/react-native-skills/SKILL.md" with {
 // -- Browser Automation --
 import agentBrowserRaw from "./builtin/agent-browser/SKILL.md" with { type: "text" }
 import dogfoodRaw from "./builtin/dogfood/SKILL.md" with { type: "text" }
+// -- Backend Testing & QA --
+import backendTestingRaw from "./builtin/backend-testing/SKILL.md" with { type: "text" }
+import testingStrategiesRaw from "./builtin/testing-strategies/SKILL.md" with { type: "text" }
+import securityBestPracticesRaw from "./builtin/security-best-practices/SKILL.md" with { type: "text" }
+import webAccessibilityRaw from "./builtin/web-accessibility/SKILL.md" with { type: "text" }
+import performanceOptimizationRaw from "./builtin/performance-optimization/SKILL.md" with { type: "text" }
+import logAnalysisRaw from "./builtin/log-analysis/SKILL.md" with { type: "text" }
+// -- Subagent Testing --
+import subagentDrivenTestingRaw from "./builtin/subagent-driven-testing/SKILL.md" with { type: "text" }
 // -- Skills Discovery --
 import findSkillsRaw from "./builtin/find-skills/SKILL.md" with { type: "text" }
 
@@ -73,6 +82,15 @@ export namespace Builtin {
     // Browser Automation
     agentBrowserRaw,
     dogfoodRaw,
+    // Backend Testing & QA
+    backendTestingRaw,
+    testingStrategiesRaw,
+    securityBestPracticesRaw,
+    webAccessibilityRaw,
+    performanceOptimizationRaw,
+    logAnalysisRaw,
+    // Subagent Testing
+    subagentDrivenTestingRaw,
     // Skills Discovery
     findSkillsRaw,
   ]

@@ -13,6 +13,7 @@ import PROMPT_COMPACTION from "./prompt/compaction.txt"
 import PROMPT_EXPLORE from "./prompt/explore.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
+import PROMPT_TEST from "../session/prompt/test.txt"
 import { PermissionNext } from "@/permission/next"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
 import { Global } from "@/global"
@@ -63,6 +64,8 @@ export namespace Agent {
       question: "deny",
       plan_enter: "deny",
       plan_exit: "deny",
+      test_enter: "deny",
+      test_exit: "deny",
       // mirrors github.com/github/gitignore Node.gitignore pattern for .env files
       read: {
         "*": "allow",
@@ -83,6 +86,7 @@ export namespace Agent {
           PermissionNext.fromConfig({
             question: "allow",
             plan_enter: "allow",
+            test_enter: "allow",
           }),
           user,
         ),
@@ -106,6 +110,27 @@ export namespace Agent {
               [path.join(".definable", "plans", "*.md")]: "allow",
               [path.relative(Instance.worktree, path.join(Global.Path.data, path.join("plans", "*.md")))]: "allow",
             },
+          }),
+          user,
+        ),
+        mode: "primary",
+        native: true,
+      },
+      test: {
+        name: "test",
+        description: "Test mode. Browser-based QA testing with agent-browser and dogfood skills.",
+        options: {},
+        prompt: PROMPT_TEST,
+        permission: PermissionNext.merge(
+          defaults,
+          PermissionNext.fromConfig({
+            question: "allow",
+            test_exit: "allow",
+            test_enter: "deny",
+            plan_enter: "deny",
+            plan_exit: "deny",
+            edit: "deny",
+            apply_patch: "deny",
           }),
           user,
         ),

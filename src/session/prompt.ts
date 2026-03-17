@@ -714,6 +714,19 @@ export namespace SessionPrompt {
       }
       continue
     }
+    // If aborted between loop iterations, mark the last assistant message as aborted
+    if (abort.aborted) {
+      for await (const item of MessageV2.stream(sessionID)) {
+        if (item.info.role !== "assistant") continue
+        const msg = item.info as MessageV2.Assistant
+        if (msg.error) break
+        if (msg.finish && !["tool-calls", "unknown"].includes(msg.finish)) break
+        msg.error = new MessageV2.AbortedError({ message: "Aborted" }).toObject()
+        if (!msg.time.completed) msg.time.completed = Date.now()
+        await Session.updateMessage(msg)
+        break
+      }
+    }
     SessionCompaction.prune({ sessionID })
     for await (const item of MessageV2.stream(sessionID)) {
       if (item.info.role === "user") continue

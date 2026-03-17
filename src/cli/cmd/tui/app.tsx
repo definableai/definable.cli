@@ -21,6 +21,8 @@ import { CommandProvider, useCommandDialog } from "@tui/component/dialog-command
 import { DialogAgent } from "@tui/component/dialog-agent"
 import { DialogSessionList } from "@tui/component/dialog-session-list"
 import { DialogSetup } from "@tui/component/dialog-setup"
+import { Onboarding } from "@tui/component/onboarding"
+import { readKey } from "@tui/component/dialog-setup"
 import { KeybindProvider } from "@tui/context/keybind"
 import { ThemeProvider, useTheme } from "@tui/context/theme"
 import { Home } from "@tui/routes/home"
@@ -217,8 +219,16 @@ function App() {
   const exit = useExit()
   const promptRef = usePromptRef()
 
+  // Onboarding: check if Definable API key exists
+  const [needsOnboarding, setNeedsOnboarding] = createSignal<boolean | undefined>(undefined)
+  onMount(async () => {
+    const key = await readKey()
+    setNeedsOnboarding(!key)
+  })
+
   useKeyboard((evt) => {
     if (!Flag.DEFINABLE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT) return
+    if (dialog.stack.length > 0) return
     if (!renderer.getSelection()) return
 
     // Windows Terminal-like behavior:
@@ -763,14 +773,28 @@ function App() {
       }}
       onMouseUp={Flag.DEFINABLE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT ? undefined : () => Selection.copy(renderer, toast)}
     >
-      <Switch>
-        <Match when={route.data.type === "home"}>
-          <Home />
-        </Match>
-        <Match when={route.data.type === "session"}>
-          <Session />
-        </Match>
-      </Switch>
+      <Show when={needsOnboarding() === true}>
+        <Onboarding
+          onComplete={() => {
+            setNeedsOnboarding(false)
+            toast.show({
+              variant: "info",
+              message: "API key saved successfully",
+              duration: 3000,
+            })
+          }}
+        />
+      </Show>
+      <Show when={needsOnboarding() === false}>
+        <Switch>
+          <Match when={route.data.type === "home"}>
+            <Home />
+          </Match>
+          <Match when={route.data.type === "session"}>
+            <Session />
+          </Match>
+        </Switch>
+      </Show>
     </box>
   )
 }

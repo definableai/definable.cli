@@ -518,7 +518,9 @@ A good skill has:
 
 ## Skill Usage
 
-Skills are pre-built workflows. Load them proactively — don't wait for the user to ask. Match the task to the skill.
+Skills are pre-built workflows. Load them proactively — don't wait for the user to ask. **Before starting any task, scan the available skills below and load any that are relevant.** Match the task to the skill.
+
+**IMPORTANT:** When MCP tools are available, **always load the corresponding skill first** before calling MCP tools directly. The skill contains the workflow, best practices, and validation steps that raw MCP calls miss.
 
 | Trigger | Skill | What it does |
 |---------|-------|--------------|

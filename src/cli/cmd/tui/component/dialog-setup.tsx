@@ -1,19 +1,23 @@
 import { DialogPrompt } from "@tui/ui/dialog-prompt"
 import { useDialog } from "@tui/ui/dialog"
 import { useToast } from "../ui/toast"
+import { readEncrypted, writeEncrypted } from "@/auth/encrypt"
 import path from "path"
 import { Global } from "@/global"
-import { Filesystem } from "@/util/filesystem"
 
 const KEY_PATH = path.join(Global.Path.data, "key.json")
 
 export async function readKey(): Promise<string | undefined> {
   try {
-    const data = await Filesystem.readJson<{ key?: string }>(KEY_PATH)
-    return data.key
+    const data = await readEncrypted(KEY_PATH)
+    return (data as { key?: string })?.key
   } catch {
     return undefined
   }
+}
+
+export async function writeKey(key: string): Promise<void> {
+  await writeEncrypted(KEY_PATH, { key })
 }
 
 export function DialogSetup() {
@@ -23,7 +27,7 @@ export function DialogSetup() {
   return (
     <DialogPrompt
       title="Setup - Enter your Definable API key"
-      placeholder="sk-..."
+      placeholder="dfn-sk-..."
       onConfirm={async (value) => {
         const trimmed = value.trim()
         if (!trimmed) {
@@ -34,7 +38,7 @@ export function DialogSetup() {
           })
           return
         }
-        await Filesystem.writeJson(KEY_PATH, { key: trimmed }, 0o600)
+        await writeKey(trimmed)
         toast.show({
           variant: "info",
           message: "API key saved successfully",

@@ -80,6 +80,7 @@ export namespace Agent {
       build: {
         name: "build",
         description: "The default agent. Executes tools based on configured permissions.",
+        variant: "high",
         options: {},
         permission: PermissionNext.merge(
           defaults,
@@ -96,6 +97,8 @@ export namespace Agent {
       plan: {
         name: "plan",
         description: "Plan mode. Disallows all edit tools.",
+        model: { providerID: "anthropic", modelID: "claude-sonnet-4-6" },
+        variant: "max",
         options: {},
         permission: PermissionNext.merge(
           defaults,
@@ -119,6 +122,8 @@ export namespace Agent {
       test: {
         name: "test",
         description: "Test mode. Browser-based QA testing with agent-browser and dogfood skills.",
+        model: { providerID: "anthropic", modelID: "claude-sonnet-4-6" },
+        variant: "medium",
         options: {},
         prompt: PROMPT_TEST,
         permission: PermissionNext.merge(

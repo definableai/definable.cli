@@ -11,6 +11,7 @@ import { CodexAuthPlugin } from "./codex"
 import { Session } from "../session"
 import { NamedError } from "@defcode/util/error"
 import { CopilotAuthPlugin } from "./copilot"
+import { AnthropicAuthPlugin } from "./anthropic"
 
 export namespace Plugin {
   const log = Log.create({ service: "plugin" })
@@ -18,7 +19,7 @@ export namespace Plugin {
   const BUILTIN = ["opencode-anthropic-auth@0.0.13"]
 
   // Built-in plugins that are directly imported (not installed from npm)
-  const INTERNAL_PLUGINS: PluginInstance[] = [CodexAuthPlugin, CopilotAuthPlugin]
+  const INTERNAL_PLUGINS: PluginInstance[] = [CodexAuthPlugin, CopilotAuthPlugin, AnthropicAuthPlugin]
 
   const state = Instance.state(async () => {
     const client = createDefcodeClient({

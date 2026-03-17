@@ -10,7 +10,6 @@ import reactBestPracticesRaw from "./builtin/react-best-practices/SKILL.md" with
 import webDesignGuidelinesRaw from "./builtin/web-design-guidelines/SKILL.md" with { type: "text" }
 import uiUxProMaxRaw from "./builtin/ui-ux-pro-max/SKILL.md" with { type: "text" }
 // -- Testing & Quality --
-import webappTestingRaw from "./builtin/webapp-testing/SKILL.md" with { type: "text" }
 import testDrivenDevelopmentRaw from "./builtin/test-driven-development/SKILL.md" with { type: "text" }
 import verificationBeforeCompletionRaw from "./builtin/verification-before-completion/SKILL.md" with { type: "text" }
 // -- Workflow & Process --
@@ -29,6 +28,9 @@ import createDesignSystemRulesRaw from "./builtin/create-design-system-rules/SKI
 import implementDesignRaw from "./builtin/implement-design/SKILL.md" with { type: "text" }
 // -- Mobile --
 import reactNativeSkillsRaw from "./builtin/react-native-skills/SKILL.md" with { type: "text" }
+// -- Browser Automation --
+import agentBrowserRaw from "./builtin/agent-browser/SKILL.md" with { type: "text" }
+import dogfoodRaw from "./builtin/dogfood/SKILL.md" with { type: "text" }
 
 /**
  * Built-in skills that are always available, even in distributed builds.
@@ -48,7 +50,6 @@ export namespace Builtin {
     webDesignGuidelinesRaw,
     uiUxProMaxRaw,
     // Testing & Quality
-    webappTestingRaw,
     testDrivenDevelopmentRaw,
     verificationBeforeCompletionRaw,
     // Workflow & Process
@@ -67,6 +68,9 @@ export namespace Builtin {
     implementDesignRaw,
     // Mobile
     reactNativeSkillsRaw,
+    // Browser Automation
+    agentBrowserRaw,
+    dogfoodRaw,
   ]
 
   function parse(raw: string): Skill.Info {

@@ -527,7 +527,8 @@ Skills are pre-built workflows. Load them proactively — don't wait for the use
 | Multi-step spec / requirements doc | `writing-plans` | Detailed implementation plan before touching code. |
 | Independent parallel work streams | `subagent-driven-development` | Dispatches fresh sub-agents per task with two-stage review. |
 | Writing tests or fixing with tests | `test-driven-development` | Write failing test → watch it fail → implement → pass. Full TDD loop. |
-| Testing a web application | `webapp-testing` | Playwright-based end-to-end verification. |
+| Testing a web application | `agent-browser` | Browser automation via CLI — navigate, interact, screenshot, extract data. |
+| Structured QA / bug hunt | `dogfood` | Exploratory testing with full reproduction evidence and structured report. |
 | Receiving PR feedback or code review | `receiving-code-review` | Verify feedback against actual codebase before implementing. Never blindly agree. |
 | Frontend UI/component work | `frontend-design` | Design-quality frontend. Avoids generic AI aesthetics. |
 | React component architecture | `react-best-practices` | React-specific patterns, hooks, state management, performance. |

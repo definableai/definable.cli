@@ -31,6 +31,8 @@ import reactNativeSkillsRaw from "./builtin/react-native-skills/SKILL.md" with {
 // -- Browser Automation --
 import agentBrowserRaw from "./builtin/agent-browser/SKILL.md" with { type: "text" }
 import dogfoodRaw from "./builtin/dogfood/SKILL.md" with { type: "text" }
+// -- Skills Discovery --
+import findSkillsRaw from "./builtin/find-skills/SKILL.md" with { type: "text" }
 
 /**
  * Built-in skills that are always available, even in distributed builds.
@@ -71,6 +73,8 @@ export namespace Builtin {
     // Browser Automation
     agentBrowserRaw,
     dogfoodRaw,
+    // Skills Discovery
+    findSkillsRaw,
   ]
 
   function parse(raw: string): Skill.Info {

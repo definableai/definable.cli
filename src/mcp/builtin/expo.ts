@@ -2,7 +2,7 @@ import * as prompts from "@clack/prompts"
 import type { Config } from "../../config/config"
 import type { McpBuiltin } from "../builtin"
 
-export const EXPO_COMMAND = ["npx", "-y", "@expo/mcp@latest"]
+export const EXPO_COMMAND = ["npx", "-y", "expo-mcp@latest"]
 
 export async function handle({ configPath, addMcpToConfig }: McpBuiltin.AddContext) {
   await addMcpToConfig(EXPO.name, EXPO.config, configPath)

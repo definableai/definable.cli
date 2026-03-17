@@ -535,6 +535,14 @@ Skills are pre-built workflows. Load them proactively — don't wait for the use
 | High-polish UI/UX work | `ui-ux-pro-max` | Production-grade UI with accessibility, responsive design, micro-interactions. |
 | Web design guidelines needed | `web-design-guidelines` | Design system principles, spacing, typography, color. |
 | Before claiming work is done | `verification-before-completing` | Adversarial verification. Tries to break the implementation before declaring done. |
+| Setting up analytics, GA4, GTM, event tracking | `analytics-tracking` | Analytics implementation plan, tracking plan, event naming, UTM strategy, privacy compliance. |
+| Adding structured data to pages | `schema-markup` | JSON-LD schema markup for rich snippets, schema.org types, validation checklist. |
+| Auditing or diagnosing SEO issues | `seo-audit` | Technical SEO audit covering crawlability, indexation, Core Web Vitals, on-page SEO, E-E-A-T. |
+| Implementing a Figma design into code | `implement-design` | Pixel-perfect Figma-to-code workflow: fetch design context, capture screenshot, translate to project conventions, validate 1:1 parity. Requires Figma MCP. |
+| Generating project-specific design system rules | `create-design-system-rules` | Generates CLAUDE.md / AGENTS.md / Cursor rules for consistent Figma-to-code output. Requires Figma MCP. |
+| Linking Figma components to code | `code-connect-components` | Maps Figma published components to code files via Code Connect. Requires Figma MCP (Organization/Enterprise plan). |
+| React Native or Expo mobile development | `vercel-react-native-skills` | Best practices for list performance, animations, navigation, UI patterns, state management, and monorepo setup. |
+| Discovering or installing new skills | `find-skills` | Search the skills ecosystem (skills.sh / `npx skills find`), verify quality, and install globally. |
 
 ---
 

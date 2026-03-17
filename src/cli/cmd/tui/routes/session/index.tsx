@@ -154,6 +154,7 @@ export function Session() {
     if (!msg) return null
     const isFinal = !!(msg.finish && !["tool-calls", "unknown"].includes(msg.finish))
     const isAborted = msg.error?.name === "MessageAbortedError"
+    const isError = !!msg.error && !isAborted
     const duration = (() => {
       if (!isFinal || !msg.time?.completed) return 0
       const user = messages().find((x) => x.role === "user" && x.id === msg.parentID)
@@ -189,7 +190,7 @@ export function Session() {
     const elapsedStart = runningTool
       ? (runningTool.state as any).time?.start as number | undefined
       : undefined
-    return { msg, isFinal, isAborted, duration, activity, toolTitle, elapsedStart }
+    return { msg, isFinal, isAborted, isError, duration, activity, toolTitle, elapsedStart }
   })
 
   const dimensions = useTerminalDimensions()
@@ -1222,9 +1223,11 @@ export function Session() {
                   marginTop={1}
                 >
                   <Switch>
-                    <Match when={footer().isFinal || footer().isAborted}>
+                    <Match when={footer().isFinal || footer().isAborted || footer().isError}>
                       <text>
-                        <span style={{ fg: footer().isAborted ? theme.textMuted : local.agent.color(footer().msg.agent) }}>✓ </span>
+                        <span style={{ fg: footer().isAborted || footer().isError ? theme.textMuted : local.agent.color(footer().msg.agent) }}>
+                          {footer().isError ? "✗ " : "✓ "}
+                        </span>
                         <span style={{ fg: theme.text }}>{Locale.titlecase(footer().msg.mode)}</span>
                         <Show when={!Provider.HIDE_MODEL_SELECTOR}>
                           <span style={{ fg: theme.textMuted }}> · {footer().msg.modelID}</span>
@@ -1234,6 +1237,9 @@ export function Session() {
                         </Show>
                         <Show when={footer().isAborted}>
                           <span style={{ fg: theme.textMuted }}> · interrupted</span>
+                        </Show>
+                        <Show when={footer().isError}>
+                          <span style={{ fg: theme.error }}> · error</span>
                         </Show>
                       </text>
                     </Match>

@@ -20,6 +20,7 @@ import { InstructionPrompt } from "./instruction"
 import { Plugin } from "../plugin"
 import PROMPT_PLAN from "./prompt/plan.txt"
 import BUILD_SWITCH from "./prompt/build-switch.txt"
+import TEST_SWITCH from "./prompt/test-switch.txt"
 import MAX_STEPS from "./prompt/max-steps.txt"
 import { defer } from "../util/defer"
 import { ToolRegistry } from "../tool/registry"
@@ -1347,6 +1348,20 @@ export namespace SessionPrompt {
           synthetic: true,
         })
       }
+      // Test mode: switching from test to build
+      const wasTest = input.messages.some((msg) => msg.info.role === "assistant" && msg.info.agent === "test")
+      if (wasTest && input.agent.name === "build") {
+        const report = Session.testReport(input.session)
+        const reportExists = await Filesystem.exists(report)
+        userMessage.parts.push({
+          id: Identifier.ascending("part"),
+          messageID: userMessage.info.id,
+          sessionID: userMessage.info.sessionID,
+          type: "text",
+          text: TEST_SWITCH + (reportExists ? `\n\nA test report exists at ${report}. Review it and fix the issues documented within.` : ""),
+          synthetic: true,
+        })
+      }
       return input.messages
     }
 
@@ -1354,7 +1369,7 @@ export namespace SessionPrompt {
     const assistantMessage = input.messages.findLast((msg) => msg.info.role === "assistant")
 
     // Switching from plan mode to build mode
-    if (input.agent.name !== "plan" && assistantMessage?.info.agent === "plan") {
+    if (input.agent.name !== "plan" && input.agent.name !== "test" && assistantMessage?.info.agent === "plan") {
       const plan = Session.plan(input.session)
       const exists = await Filesystem.exists(plan)
       if (exists) {
@@ -1369,6 +1384,58 @@ export namespace SessionPrompt {
         })
         userMessage.parts.push(part)
       }
+      return input.messages
+    }
+
+    // Switching from test mode to build mode
+    if (input.agent.name !== "test" && assistantMessage?.info.agent === "test") {
+      const report = Session.testReport(input.session)
+      const reportExists = await Filesystem.exists(report)
+      const part = await Session.updatePart({
+        id: Identifier.ascending("part"),
+        messageID: userMessage.info.id,
+        sessionID: userMessage.info.sessionID,
+        type: "text",
+        text: TEST_SWITCH + (reportExists ? `\n\nA test report exists at ${report}. Review it and fix the issues documented within.` : ""),
+        synthetic: true,
+      })
+      userMessage.parts.push(part)
+      return input.messages
+    }
+
+    // Entering test mode
+    if (input.agent.name === "test" && assistantMessage?.info.agent !== "test") {
+      const report = Session.testReport(input.session)
+      const reportExists = await Filesystem.exists(report)
+      if (!reportExists) await fs.mkdir(path.dirname(report), { recursive: true })
+      const part = await Session.updatePart({
+        id: Identifier.ascending("part"),
+        messageID: userMessage.info.id,
+        sessionID: userMessage.info.sessionID,
+        type: "text",
+        text: `<system-reminder>
+Test mode is active. You are now in browser-based QA testing mode.
+
+## Test Report Info:
+${reportExists ? `A test report already exists at ${report}. You can read it and append new findings.` : `No test report exists yet. Create your test report at ${report} using the write tool.`}
+Write your test findings to this report file incrementally as you discover issues.
+
+## Constraints:
+- You MUST NOT edit existing source code files. You can only write new files (test reports, screenshots, videos).
+- You MUST NOT make commits, modify configs, or change the codebase.
+- If the user asks you to fix something, call the test_exit tool to switch to build mode.
+
+## Quick Start:
+1. Set up output directory: \`mkdir -p ./test-output/screenshots ./test-output/videos\`
+2. Open the target URL: \`agent-browser --session test open <url>\`
+3. Take initial snapshot: \`agent-browser --session test snapshot -i\`
+4. Explore, find issues, document with screenshots/videos
+5. Write findings to the test report incrementally
+6. When done or when user asks to fix issues, call test_exit
+</system-reminder>`,
+        synthetic: true,
+      })
+      userMessage.parts.push(part)
       return input.messages
     }
 
@@ -1388,6 +1455,13 @@ Plan mode is active. The user indicated that they do not want you to execute yet
 ## Plan File Info:
 ${exists ? `A plan file already exists at ${plan}. You can read it and make incremental edits using the edit tool.` : `No plan file exists yet. You should create your plan at ${plan} using the write tool.`}
 You should build your plan incrementally by writing to or editing this file. NOTE that this is the only file you are allowed to edit - other than this you are only allowed to take READ-ONLY actions.
+
+## Critical Skills
+
+Load these skills to help structure your plan:
+- **writing-plans** — Plan structure, formatting, and completeness guidelines. Load this to produce well-organized plans.
+- **brainstorming** — Structured approach to exploring alternatives and tradeoffs. Load this when weighing different approaches.
+- **agent-browser** — If the user asks to research or inspect a live website, load this for browser automation.
 
 ## Plan Workflow
 

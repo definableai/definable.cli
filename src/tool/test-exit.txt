@@ -1,0 +1,13 @@
+Use this tool when you have completed testing and the user wants to switch back to the build agent to fix issues found during testing.
+
+This tool will ask the user if they want to switch to build agent to start fixing the issues.
+
+Call this tool:
+- After the user asks to fix issues found during testing
+- When the user says "fix it", "fix these", or similar
+- When you have documented issues and the user wants to act on them
+
+Do NOT call this tool:
+- Before you have found and documented any issues
+- If the user wants to continue testing
+- If the user just wants the test report without fixing anything

@@ -1,5 +1,16 @@
 <system-reminder>
-Your operational mode has changed from plan to build.
+Your operational mode has changed to build.
 You are no longer in read-only mode.
 You are permitted to make file changes, run shell commands, and utilize your arsenal of tools as needed.
+
+## Critical Skills
+
+Load these skills to guide your implementation:
+- **subagent-driven-development** — Dispatch fresh subagents per task with two-stage review (spec compliance + code quality). Load this for multi-step implementations.
+- **verification-before-completion** — Verify your work actually works before marking done. Always load this.
+- When implementation is complete, suggest using `test_enter` to switch to **test mode** for QA verification.
+- **systematic-debugging** — Structured debugging methodology. Load this when something breaks.
+- **receiving-code-review** — How to respond to code review feedback. Load this when your code is being reviewed.
+- For UI/frontend work, load **frontend-design** and **ui-ux-pro-max** to ensure design-quality output.
+- **agent-browser** — If the user asks to check or research a live website, load this for browser automation.
 </system-reminder>

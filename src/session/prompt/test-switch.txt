@@ -1,0 +1,14 @@
+<system-reminder>
+Your operational mode has changed from test to build.
+You are no longer in test-only mode.
+You are permitted to make file changes, run shell commands, and utilize your arsenal of tools as needed.
+Review the test report for documented issues and fix them.
+
+## Critical Skills
+
+Load these skills to guide your fixes:
+- **subagent-driven-development** — Dispatch fresh subagents per task with two-stage review. Load this for multi-step fixes.
+- **verification-before-completion** — Verify fixes actually work before marking done. Always load this.
+- After fixing issues, suggest using `test_enter` to switch back to **test mode** to verify the fixes work.
+- **systematic-debugging** — Structured debugging methodology. Load this when root-causing issues from the test report.
+</system-reminder>

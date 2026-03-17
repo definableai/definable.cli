@@ -455,6 +455,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           const last = messages.at(-1)
           if (!last) return "idle"
           if (last.role === "user") return "working"
+          if ((last as any).error) return "idle"
           return last.time.completed ? "idle" : "working"
         },
         async sync(sessionID: string) {

@@ -80,7 +80,7 @@ export namespace Agent {
       build: {
         name: "build",
         description: "The default agent. Executes tools based on configured permissions.",
-        variant: "high",
+        variant: "medium",
         options: {},
         permission: PermissionNext.merge(
           defaults,
@@ -98,7 +98,7 @@ export namespace Agent {
         name: "plan",
         description: "Plan mode. Disallows all edit tools.",
         model: { providerID: "anthropic", modelID: "claude-sonnet-4-6" },
-        variant: "max",
+        variant: "medium",
         options: {},
         permission: PermissionNext.merge(
           defaults,
@@ -355,7 +355,7 @@ export namespace Agent {
           instructions: SystemPrompt.instructions(),
           store: false,
         }),
-        onError: () => {},
+        onError: () => { },
       })
       for await (const part of result.fullStream) {
         if (part.type === "error") throw part.error

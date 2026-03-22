@@ -65,18 +65,19 @@ export namespace SystemPrompt {
             : ""
         }`,
         `</directories>`,
+        projectHints.length > 0
+          ? [
+              `<project-hints>`,
+              `These hints describe the detected project type. They OVERRIDE skill descriptions when choosing which skill to load. Always check these BEFORE selecting a skill.`,
+              ...projectHints.map((h) => `  - ${h}`),
+              `</project-hints>`,
+            ].join("\n")
+          : "",
         skills.length > 0
           ? [`<available-skills>`, `${skillLines}`, `</available-skills>`].join("\n")
           : "",
         connectedMcps
           ? [`<active-mcp-servers>`, `${connectedMcps}`, `</active-mcp-servers>`].join("\n")
-          : "",
-        projectHints.length > 0
-          ? [
-              `<project-hints>`,
-              ...projectHints.map((h) => `  - ${h}`),
-              `</project-hints>`,
-            ].join("\n")
           : "",
       ]
         .filter(Boolean)

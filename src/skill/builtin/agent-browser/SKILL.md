@@ -153,8 +153,8 @@ agent-browser set viewport 1920 1080 2        # 2x retina (same CSS size, higher
 agent-browser set device "iPhone 14"          # Emulate device (viewport + user agent)
 
 # Capture
-agent-browser screenshot              # Screenshot to temp dir
-agent-browser screenshot --full       # Full page screenshot
+agent-browser screenshot              # Screenshot viewport (PREFERRED for AI analysis)
+agent-browser screenshot --full       # Full page screenshot (AVOID -- see note below)
 agent-browser screenshot --annotate   # Annotated screenshot with numbered element labels
 agent-browser screenshot --screenshot-dir ./shots  # Save to custom directory
 agent-browser screenshot --screenshot-format jpeg --screenshot-quality 80
@@ -506,6 +506,36 @@ agent-browser click @e5              # Navigates to new page
 agent-browser snapshot -i            # MUST re-snapshot
 agent-browser click @e1              # Use new refs
 ```
+
+## Screenshot Best Practices for AI Analysis
+
+**NEVER use `--full` (full-page screenshots) when the result will be analyzed by an AI/LLM.** Full-page screenshots produce very tall images that get downscaled, causing pixel-level details (text, icons, borders, spacing) to become unreadable. This leads to missed issues and false positives.
+
+**Instead, capture the page section by section using viewport-sized screenshots:**
+
+```bash
+# 1. Screenshot the current viewport (what's visible)
+agent-browser screenshot {OUTPUT_DIR}/section-top.png
+
+# 2. Scroll down and capture the next section
+agent-browser scroll down 600
+agent-browser screenshot {OUTPUT_DIR}/section-middle.png
+
+# 3. Continue scrolling and capturing until you reach the bottom
+agent-browser scroll down 600
+agent-browser screenshot {OUTPUT_DIR}/section-bottom.png
+```
+
+**Why this matters:**
+- Viewport screenshots are typically 1280x720 -- sharp and readable at full resolution
+- Full-page screenshots on long pages can be 1280x5000+ pixels, which get heavily compressed/downscaled when sent to the AI, losing critical detail
+- Section-by-section captures let you analyze each part of the page at native resolution
+
+**Rules:**
+- Use `agent-browser screenshot` (no `--full`) for all AI-analyzed screenshots
+- Scroll the page in increments (400-700px) and take a viewport screenshot at each position
+- Use `--annotate` on viewport screenshots when you need element refs
+- `--full` is acceptable ONLY for archival/human-review purposes, never for AI analysis
 
 ## Annotated Screenshots (Vision Mode)
 

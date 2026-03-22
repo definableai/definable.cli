@@ -4,6 +4,7 @@ import * as expo from "./builtin/expo"
 import * as figma from "./builtin/figma"
 import * as github from "./builtin/github"
 import * as playwright from "./builtin/playwright"
+import * as stitch from "./builtin/stitch"
 import * as stripe from "./builtin/stripe"
 import * as supabase from "./builtin/supabase"
 
@@ -43,8 +44,12 @@ export namespace McpBuiltin {
   export const SUPABASE_REMOTE_URL = supabase.SUPABASE_REMOTE_URL
   export const SUPABASE: Preset = supabase.SUPABASE
 
+  export const STITCH_REMOTE_URL = stitch.STITCH_REMOTE_URL
+  export const STITCH_HEADER_KEY = stitch.STITCH_HEADER_KEY
+  export const STITCH: Preset = stitch.STITCH
+
   export const STRIPE_REMOTE_URL = stripe.STRIPE_REMOTE_URL
   export const STRIPE: Preset = stripe.STRIPE
 
-  export const presets: Preset[] = [FIGMA, PLAYWRIGHT, CONTEXT7, GITHUB, EXPO, SUPABASE, STRIPE]
+  export const presets: Preset[] = [FIGMA, PLAYWRIGHT, CONTEXT7, GITHUB, EXPO, SUPABASE, STRIPE, STITCH]
 }

@@ -28,6 +28,7 @@ import createDesignSystemRulesRaw from "./builtin/create-design-system-rules/SKI
 import implementDesignRaw from "./builtin/implement-design/SKILL.md" with { type: "text" }
 // -- Mobile --
 import reactNativeSkillsRaw from "./builtin/react-native-skills/SKILL.md" with { type: "text" }
+import reactNativeDetoxRaw from "./builtin/react-native-detox/SKILL.md" with { type: "text" }
 // -- Browser Automation --
 import agentBrowserRaw from "./builtin/agent-browser/SKILL.md" with { type: "text" }
 import dogfoodRaw from "./builtin/dogfood/SKILL.md" with { type: "text" }
@@ -79,6 +80,8 @@ export namespace Builtin {
     implementDesignRaw,
     // Mobile
     reactNativeSkillsRaw,
+    reactNativeDetoxRaw,
+
     // Browser Automation
     agentBrowserRaw,
     dogfoodRaw,

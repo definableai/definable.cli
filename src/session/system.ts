@@ -3,6 +3,7 @@ import { Ripgrep } from "../file/ripgrep"
 import { Instance } from "../project/instance"
 import { Skill } from "../skill/skill"
 import { MCP } from "../mcp"
+import { ProjectHints } from "./hints"
 
 import PROMPT_ANTHROPIC from "./prompt/anthropic.txt"
 import PROMPT_ANTHROPIC_WITHOUT_TODO from "./prompt/qwen.txt"
@@ -31,9 +32,10 @@ export namespace SystemPrompt {
   export async function environment(model: Provider.Model) {
     const project = Instance.project
 
-    const [skills, mcpStatus] = await Promise.all([
+    const [skills, mcpStatus, projectHints] = await Promise.all([
       Skill.all(),
       MCP.status().catch(() => ({} as Record<string, { status: string }>)),
+      ProjectHints.detect(),
     ])
 
     const skillLines = skills.map((s) => `  - ${s.name}: ${s.description}`).join("\n")
@@ -68,6 +70,13 @@ export namespace SystemPrompt {
           : "",
         connectedMcps
           ? [`<active-mcp-servers>`, `${connectedMcps}`, `</active-mcp-servers>`].join("\n")
+          : "",
+        projectHints.length > 0
+          ? [
+              `<project-hints>`,
+              ...projectHints.map((h) => `  - ${h}`),
+              `</project-hints>`,
+            ].join("\n")
           : "",
       ]
         .filter(Boolean)

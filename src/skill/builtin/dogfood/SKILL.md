@@ -1,12 +1,27 @@
 ---
 name: dogfood
-description: Systematically explore and test a web application to find bugs, UX issues, and other problems. Use when asked to "dogfood", "QA", "exploratory test", "find issues", "bug hunt", "test this app/site/platform", or review the quality of a web application. Produces a structured report with full reproduction evidence -- step-by-step screenshots, repro videos, and detailed repro steps for every issue -- so findings can be handed directly to the responsible teams.
+description: Systematically explore and test a web application to find bugs, UX issues, and other problems. Use when asked to "dogfood", "QA", "exploratory test", "find issues", "bug hunt", "test this app/site/platform", "test my app", "test my site", or review the quality of a web application. Also triggers on generic "test my app" requests -- first detect if the project is a web app (check for frameworks like Next.js, React, Vue, Svelte, Angular in package.json, or the presence of HTML/web files, or a running localhost URL), and if so, load this skill. Produces a structured report with full reproduction evidence -- step-by-step screenshots, repro videos, and detailed repro steps for every issue -- so findings can be handed directly to the responsible teams.
 allowed-tools: Bash(agent-browser:*), Bash(npx agent-browser:*)
 ---
 
 # Dogfood
 
 Systematically explore a web application, find issues, and produce a report with full reproduction evidence for every finding.
+
+## Is This a Web App?
+
+When the user says something generic like "test my app" without specifying a URL or app type, **detect whether it's a web app before proceeding.** Check in this order:
+
+1. **Look at `package.json`** — does it have web frameworks/libraries as dependencies? (Next.js, React, Vue, Nuxt, Svelte, SvelteKit, Angular, Remix, Astro, Gatsby, Express, Fastify, Hono, etc.)
+2. **Look for web files** — `index.html`, `app.tsx`, `pages/`, `src/app/`, `public/`, etc.
+3. **Check for a dev server script** — `dev`, `start`, `serve` scripts in `package.json` that suggest a running web server.
+
+If it's a web app:
+- Check if a dev server is already running (try `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000` or common ports like 3000, 3001, 5173, 8080, 4321).
+- If not running, look at the `dev` or `start` script and tell the user to start it, or offer to start it for them.
+- Once the URL is known, proceed with the dogfood workflow below.
+
+If it's NOT a web app (e.g., CLI tool, mobile-only, library with no UI), **do not use this skill.** Tell the user this skill is for browser-based web app testing and suggest alternatives (unit tests, integration tests, etc.).
 
 ## Setup
 
@@ -19,8 +34,16 @@ Only the **Target URL** is required. Everything else has sensible defaults -- us
 | **Output directory** | `./dogfood-output/` | `Output directory: /tmp/qa` |
 | **Scope** | Full app | `Focus on the billing page` |
 | **Authentication** | None | `Sign in to user@example.com` |
+| **Browser mode** | Headless (background) | `--headed` for visible browser window |
 
-If the user says something like "dogfood vercel.com", start immediately with defaults. Do not ask clarifying questions unless authentication is mentioned but credentials are missing.
+**Before starting, always ask the user one question:** whether they want the browser window visible (headed) or running in the background (headless). Present it as a simple choice:
+
+- **Headed (browser window visible)** — You can watch the testing in real-time. Good for debugging, demos, or following along.
+- **Headless (background)** — Faster, no browser window. Good for hands-off QA runs.
+
+If the user picks headed, add `--headed` to ALL `agent-browser` commands throughout the session. If headless (or no preference), use the default (no flag needed).
+
+Do not ask any other clarifying questions unless authentication is mentioned but credentials are missing.
 
 Always use `agent-browser` directly -- never `npx agent-browser`. The direct binary uses the fast Rust client. `npx` routes through Node.js and is significantly slower.
 
@@ -47,9 +70,14 @@ Copy the report template into the output directory and fill in the header fields
 cp {SKILL_DIR}/templates/dogfood-report-template.md {OUTPUT_DIR}/report.md
 ```
 
-Start a named session:
+Start a named session. If the user chose headed mode, include `--headed` in the **first command only** (the browser stays headed for the entire session after that):
 
 ```bash
+# Headed mode:
+agent-browser --session {SESSION} --headed open {TARGET_URL}
+agent-browser --session {SESSION} wait --load networkidle
+
+# Headless mode (default):
 agent-browser --session {SESSION} open {TARGET_URL}
 agent-browser --session {SESSION} wait --load networkidle
 ```
@@ -102,10 +130,17 @@ Read [references/issue-taxonomy.md](references/issue-taxonomy.md) for the full l
 
 ```bash
 agent-browser --session {SESSION} snapshot -i
-agent-browser --session {SESSION} screenshot --annotate {OUTPUT_DIR}/screenshots/{page-name}.png
+agent-browser --session {SESSION} screenshot --annotate {OUTPUT_DIR}/screenshots/{page-name}-1.png
 agent-browser --session {SESSION} errors
 agent-browser --session {SESSION} console
+
+# Scroll down and capture remaining sections (DO NOT use --full)
+agent-browser --session {SESSION} scroll down 600
+agent-browser --session {SESSION} screenshot --annotate {OUTPUT_DIR}/screenshots/{page-name}-2.png
+# Continue scrolling + screenshotting until the page bottom is reached
 ```
+
+> **Important:** Never use `screenshot --full`. Full-page screenshots get downscaled by the AI, making details unreadable. Always capture section by section using viewport-sized screenshots as shown above.
 
 Use your judgment on how deep to go. Spend more time on core features and less on peripheral pages. If you find a cluster of issues in one area, investigate deeper.
 
@@ -206,6 +241,7 @@ agent-browser --session {SESSION} close
 - **Type like a human.** When filling form fields during video recording, use `type` instead of `fill` -- it types character-by-character. Use `fill` only outside of video recording when speed matters.
 - **Pace repro videos for humans.** Add `sleep 1` between actions and `sleep 2` before the final result screenshot. Videos should be watchable at 1x speed -- a human reviewing the report needs to see what happened, not a blur of instant state changes.
 - **Be efficient with commands.** Batch multiple `agent-browser` commands in a single shell call when they are independent (e.g., `agent-browser ... screenshot ... && agent-browser ... console`). Use `agent-browser --session {SESSION} scroll down 300` for scrolling -- do not use `key` or `evaluate` to scroll.
+- **NEVER use `--full` (full-page screenshots).** Full-page screenshots produce very tall images that get downscaled by the AI, making text, icons, and fine details unreadable -- leading to missed issues and false positives. Instead, capture the page **section by section**: take a viewport screenshot, scroll down 400-700px, take another viewport screenshot, and repeat until you've covered the full page. Each viewport-sized screenshot stays sharp and readable at native resolution.
 
 ## References
 

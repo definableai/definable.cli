@@ -20,6 +20,7 @@ For a **single narrow test** (e.g., "just check the login page"), you can test d
 - **web-accessibility** — WCAG 2.1 compliance
 - **performance-optimization** — Lighthouse, Web Vitals, profiling
 - **log-analysis** — Error patterns, security anomalies in logs
+- **react-native-detox** — Detox E2E tests for React Native on iOS/Android simulators
 
 ### Orchestration
 - **subagent-driven-testing** — Dispatch and coordinate parallel tester subagents. Contains prompt templates for each tester type.

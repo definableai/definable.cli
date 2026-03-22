@@ -3,7 +3,7 @@ import { Ripgrep } from "../file/ripgrep"
 import { Instance } from "../project/instance"
 import { Skill } from "../skill/skill"
 import { MCP } from "../mcp"
-import { ProjectHints } from "./hints"
+import { ProjectHints } from "./hints/index"
 
 import PROMPT_ANTHROPIC from "./prompt/anthropic.txt"
 import PROMPT_ANTHROPIC_WITHOUT_TODO from "./prompt/qwen.txt"

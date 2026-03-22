@@ -1,48 +1,12 @@
 ---
 name: dogfood
-description: Systematically explore and test a WEB application to find bugs, UX issues, and other problems. Use when asked to "dogfood", "QA", "exploratory test", "find issues", "bug hunt", "test this app/site/platform", "test my app", "test my site", or review the quality of a web application. Also triggers on generic "test my app" requests -- but you MUST first detect the project type before using this skill. If the project is React Native or Expo (has react-native/expo in dependencies, android/ and ios/ dirs, .detoxrc.js, metro.config.js), DO NOT use this skill -- use react-native-detox instead. Only use this skill after confirming it is a web app. Produces a structured report with full reproduction evidence -- step-by-step screenshots, repro videos, and detailed repro steps for every issue -- so findings can be handed directly to the responsible teams.
+description: Browser-based exploratory testing for web applications. Systematically navigates a web app in a browser to find bugs, UX issues, and other problems. Use when asked to "dogfood", "QA", "exploratory test", "find issues", or "bug hunt" a web app. Produces a structured report with screenshots, repro videos, and detailed repro steps.
 allowed-tools: Bash(agent-browser:*), Bash(npx agent-browser:*)
 ---
 
 # Dogfood
 
 Systematically explore a web application, find issues, and produce a report with full reproduction evidence for every finding.
-
-## Is This a Web App? (Detection — MUST run first)
-
-When the user says something generic like "test my app" without specifying a URL or app type, **you MUST detect the project type before proceeding.** Getting this wrong wastes the user's time.
-
-### Step 1: Rule out React Native / mobile apps FIRST
-
-Check for these React Native / mobile indicators. If **any** match, **STOP — do NOT use this skill.** Use `react-native-detox` instead.
-
-- `react-native` in `package.json` dependencies or devDependencies
-- `expo` in `package.json` dependencies
-- `app.json` or `app.config.js` / `app.config.ts` with Expo config
-- `android/` and `ios/` directories at project root
-- `.detoxrc.js` or `detox` key in `package.json`
-- `metro.config.js` or `react-native.config.js`
-
-> **Why check this first:** React Native projects also have `react` as a dependency. If you only check for "React" you will incorrectly classify a React Native app as a web app. Always check for React Native signals before web signals.
-
-### Step 2: Confirm it's a web app
-
-Only after ruling out mobile, check for web indicators:
-
-1. **Web frameworks in `package.json`** — Next.js (`next`), Remix, Astro, Gatsby, Nuxt, Vue, Svelte/SvelteKit, Angular, Express, Fastify, Hono, Vite (without React Native)
-2. **Web-specific files** — `index.html`, `pages/`, `src/app/`, `public/index.html`, `vite.config.*`, `next.config.*`, `astro.config.*`
-3. **Dev server scripts** — `dev`, `start`, `serve` in `package.json` scripts
-
-### Step 3: Start or find the dev server
-
-If confirmed web app:
-- Check if a dev server is already running: `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000` (also try ports 3001, 5173, 8080, 4321)
-- If not running, check the `dev` or `start` script and offer to start it for the user
-- Once the URL is known, proceed with the dogfood workflow below
-
-### Not a web app?
-
-If it's NOT a web app and NOT React Native (e.g., CLI tool, Go service, library with no UI), **do not use this skill.** Tell the user and suggest alternatives (unit tests, integration tests, etc.).
 
 ## Setup
 

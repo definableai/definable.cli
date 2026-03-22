@@ -1,6 +1,6 @@
 ---
 name: dogfood
-description: Systematically explore and test a web application to find bugs, UX issues, and other problems. Use when asked to "dogfood", "QA", "exploratory test", "find issues", "bug hunt", "test this app/site/platform", "test my app", "test my site", or review the quality of a web application. Also triggers on generic "test my app" requests -- first detect if the project is a web app (check for frameworks like Next.js, React, Vue, Svelte, Angular in package.json, or the presence of HTML/web files, or a running localhost URL), and if so, load this skill. Produces a structured report with full reproduction evidence -- step-by-step screenshots, repro videos, and detailed repro steps for every issue -- so findings can be handed directly to the responsible teams.
+description: Systematically explore and test a WEB application to find bugs, UX issues, and other problems. Use when asked to "dogfood", "QA", "exploratory test", "find issues", "bug hunt", "test this app/site/platform", "test my app", "test my site", or review the quality of a web application. Also triggers on generic "test my app" requests -- but you MUST first detect the project type before using this skill. If the project is React Native or Expo (has react-native/expo in dependencies, android/ and ios/ dirs, .detoxrc.js, metro.config.js), DO NOT use this skill -- use react-native-detox instead. Only use this skill after confirming it is a web app. Produces a structured report with full reproduction evidence -- step-by-step screenshots, repro videos, and detailed repro steps for every issue -- so findings can be handed directly to the responsible teams.
 allowed-tools: Bash(agent-browser:*), Bash(npx agent-browser:*)
 ---
 
@@ -8,20 +8,41 @@ allowed-tools: Bash(agent-browser:*), Bash(npx agent-browser:*)
 
 Systematically explore a web application, find issues, and produce a report with full reproduction evidence for every finding.
 
-## Is This a Web App?
+## Is This a Web App? (Detection — MUST run first)
 
-When the user says something generic like "test my app" without specifying a URL or app type, **detect whether it's a web app before proceeding.** Check in this order:
+When the user says something generic like "test my app" without specifying a URL or app type, **you MUST detect the project type before proceeding.** Getting this wrong wastes the user's time.
 
-1. **Look at `package.json`** — does it have web frameworks/libraries as dependencies? (Next.js, React, Vue, Nuxt, Svelte, SvelteKit, Angular, Remix, Astro, Gatsby, Express, Fastify, Hono, etc.)
-2. **Look for web files** — `index.html`, `app.tsx`, `pages/`, `src/app/`, `public/`, etc.
-3. **Check for a dev server script** — `dev`, `start`, `serve` scripts in `package.json` that suggest a running web server.
+### Step 1: Rule out React Native / mobile apps FIRST
 
-If it's a web app:
-- Check if a dev server is already running (try `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000` or common ports like 3000, 3001, 5173, 8080, 4321).
-- If not running, look at the `dev` or `start` script and tell the user to start it, or offer to start it for them.
-- Once the URL is known, proceed with the dogfood workflow below.
+Check for these React Native / mobile indicators. If **any** match, **STOP — do NOT use this skill.** Use `react-native-detox` instead.
 
-If it's NOT a web app (e.g., CLI tool, mobile-only, library with no UI), **do not use this skill.** Tell the user this skill is for browser-based web app testing and suggest alternatives (unit tests, integration tests, etc.).
+- `react-native` in `package.json` dependencies or devDependencies
+- `expo` in `package.json` dependencies
+- `app.json` or `app.config.js` / `app.config.ts` with Expo config
+- `android/` and `ios/` directories at project root
+- `.detoxrc.js` or `detox` key in `package.json`
+- `metro.config.js` or `react-native.config.js`
+
+> **Why check this first:** React Native projects also have `react` as a dependency. If you only check for "React" you will incorrectly classify a React Native app as a web app. Always check for React Native signals before web signals.
+
+### Step 2: Confirm it's a web app
+
+Only after ruling out mobile, check for web indicators:
+
+1. **Web frameworks in `package.json`** — Next.js (`next`), Remix, Astro, Gatsby, Nuxt, Vue, Svelte/SvelteKit, Angular, Express, Fastify, Hono, Vite (without React Native)
+2. **Web-specific files** — `index.html`, `pages/`, `src/app/`, `public/index.html`, `vite.config.*`, `next.config.*`, `astro.config.*`
+3. **Dev server scripts** — `dev`, `start`, `serve` in `package.json` scripts
+
+### Step 3: Start or find the dev server
+
+If confirmed web app:
+- Check if a dev server is already running: `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000` (also try ports 3001, 5173, 8080, 4321)
+- If not running, check the `dev` or `start` script and offer to start it for the user
+- Once the URL is known, proceed with the dogfood workflow below
+
+### Not a web app?
+
+If it's NOT a web app and NOT React Native (e.g., CLI tool, Go service, library with no UI), **do not use this skill.** Tell the user and suggest alternatives (unit tests, integration tests, etc.).
 
 ## Setup
 

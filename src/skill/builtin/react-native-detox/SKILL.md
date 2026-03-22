@@ -1,12 +1,12 @@
 ---
 name: react-native-detox
-description: Write, run, and debug Detox end-to-end tests for React Native apps on iOS and Android. Use when the user mentions "detox", "e2e test", "end-to-end test", "mobile testing", "react native test", "simulator test", "emulator test", "UI test mobile", "integration test react native", or wants to test user flows on iOS/Android simulators. Handles test setup, writing test suites, configuring .detoxrc.js, mocking, CI integration, and debugging flaky tests.
+description: Write, run, and debug Detox end-to-end tests for React Native apps on iOS and Android. Use when the user mentions "detox", "e2e test", "end-to-end test", "mobile testing", "react native test", "simulator test", "emulator test", "UI test mobile", "integration test react native", "test my app" (when the project is React Native/Expo), or wants to test user flows on iOS/Android simulators. Also triggers on generic "test my app" requests -- if the project has react-native or expo in package.json dependencies, android/ and ios/ dirs, .detoxrc.js, metro.config.js, or app.json with Expo config, use THIS skill instead of dogfood. Handles test setup, writing test suites, configuring .detoxrc.js, mocking, CI integration, and debugging flaky tests.
 license: MIT
 metadata:
   author: defcode
   version: "1.0.0"
   domain: testing
-  triggers: detox, e2e, end-to-end, mobile test, react native test, simulator test, emulator test, UI test mobile, integration test react native, detox config, .detoxrc, flaky test mobile
+  triggers: detox, e2e, end-to-end, mobile test, react native test, simulator test, emulator test, UI test mobile, integration test react native, detox config, .detoxrc, flaky test mobile, test my app
   role: specialist
   scope: testing
   output-format: code
@@ -16,6 +16,21 @@ metadata:
 # React Native Detox E2E Testing
 
 Senior mobile test engineer specializing in Detox gray-box end-to-end testing for React Native. Writes deterministic, non-flaky test suites that run on iOS simulators and Android emulators.
+
+## Is This a React Native App? (Detection — MUST run first)
+
+When the user says something generic like "test my app" without specifying the app type, **confirm this is a React Native / Expo project before proceeding.** Check for ANY of these indicators:
+
+- `react-native` in `package.json` dependencies or devDependencies
+- `expo` in `package.json` dependencies
+- `app.json` or `app.config.js` / `app.config.ts` with Expo config
+- `android/` and `ios/` directories at project root
+- `.detoxrc.js` or `detox` key in `package.json`
+- `metro.config.js` or `react-native.config.js`
+
+If **any** match → this is the right skill, proceed with the workflow below.
+
+If **none** match → this is NOT a React Native app. **Do NOT use this skill.** Check if it's a web app (Next.js, Vue, Svelte, etc.) and use `dogfood` instead, or suggest unit/integration tests for non-UI projects.
 
 ## Core Workflow
 

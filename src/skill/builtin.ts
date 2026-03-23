@@ -9,6 +9,16 @@ import frontendDesignRaw from "./builtin/frontend-design/SKILL.md" with { type: 
 import reactBestPracticesRaw from "./builtin/react-best-practices/SKILL.md" with { type: "text" }
 import webDesignGuidelinesRaw from "./builtin/web-design-guidelines/SKILL.md" with { type: "text" }
 import uiUxProMaxRaw from "./builtin/ui-ux-pro-max/SKILL.md" with { type: "text" }
+import designInspirationRaw from "./builtin/design-inspiration/SKILL.md" with { type: "text" }
+import iconLibraryRaw from "./builtin/icon-library/SKILL.md" with { type: "text" }
+import illustrationLibraryRaw from "./builtin/illustration-library/SKILL.md" with { type: "text" }
+import cssTokenExtractorRaw from "./builtin/css-token-extractor/SKILL.md" with { type: "text" }
+import typographyInspectorRaw from "./builtin/typography-inspector/SKILL.md" with { type: "text" }
+import colorPaletteExtractorRaw from "./builtin/color-palette-extractor/SKILL.md" with { type: "text" }
+import layoutPatternDetectorRaw from "./builtin/layout-pattern-detector/SKILL.md" with { type: "text" }
+import componentInventoryRaw from "./builtin/component-inventory/SKILL.md" with { type: "text" }
+import responsiveBehaviorCaptureRaw from "./builtin/responsive-behavior-capture/SKILL.md" with { type: "text" }
+import motionPatternAnalyzerRaw from "./builtin/motion-pattern-analyzer/SKILL.md" with { type: "text" }
 // -- Testing & Quality --
 import testDrivenDevelopmentRaw from "./builtin/test-driven-development/SKILL.md" with { type: "text" }
 import verificationBeforeCompletionRaw from "./builtin/verification-before-completion/SKILL.md" with { type: "text" }
@@ -61,6 +71,16 @@ export namespace Builtin {
     reactBestPracticesRaw,
     webDesignGuidelinesRaw,
     uiUxProMaxRaw,
+    designInspirationRaw,
+    iconLibraryRaw,
+    illustrationLibraryRaw,
+    cssTokenExtractorRaw,
+    typographyInspectorRaw,
+    colorPaletteExtractorRaw,
+    layoutPatternDetectorRaw,
+    componentInventoryRaw,
+    responsiveBehaviorCaptureRaw,
+    motionPatternAnalyzerRaw,
     // Testing & Quality
     testDrivenDevelopmentRaw,
     verificationBeforeCompletionRaw,

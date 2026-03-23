@@ -1,0 +1,12 @@
+Use this tool when the design system or approach is complete and the user is ready to move forward.
+
+This tool will ask the user whether they want to go to plan mode (to plan the implementation), build directly, or keep designing.
+
+Call this tool:
+- When the design system / approach has been presented and the user is satisfied
+- When the user says "looks good", "let's plan it", "build it", "implement this", or similar
+- When designs are ready and the user wants to move to the next step
+
+Do NOT call this tool:
+- Before you have produced any design decisions or design system
+- If the user wants to continue designing or iterating on the design

@@ -14,6 +14,7 @@ import PROMPT_EXPLORE from "./prompt/explore.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
 import PROMPT_TEST from "../session/prompt/test.txt"
+import PROMPT_DESIGN from "../session/prompt/design.txt"
 import { PermissionNext } from "@/permission/next"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
 import { Global } from "@/global"
@@ -67,6 +68,8 @@ export namespace Agent {
       plan_exit: "deny",
       test_enter: "deny",
       test_exit: "deny",
+      design_enter: "deny",
+      design_exit: "deny",
       // mirrors github.com/github/gitignore Node.gitignore pattern for .env files
       read: {
         "*": "allow",
@@ -89,6 +92,7 @@ export namespace Agent {
             question: "allow",
             plan_enter: "allow",
             test_enter: "allow",
+            design_enter: "allow",
           }),
           user,
         ),
@@ -106,6 +110,7 @@ export namespace Agent {
           PermissionNext.fromConfig({
             question: "allow",
             plan_exit: "allow",
+            design_enter: "allow",
             external_directory: {
               [path.join(Global.Path.data, "plans", "*")]: "allow",
             },
@@ -132,6 +137,31 @@ export namespace Agent {
           PermissionNext.fromConfig({
             question: "allow",
             test_exit: "allow",
+            test_enter: "deny",
+            plan_enter: "deny",
+            plan_exit: "deny",
+            design_enter: "allow",
+            edit: "deny",
+            apply_patch: "deny",
+          }),
+          user,
+        ),
+        mode: "primary",
+        native: true,
+      },
+      design: {
+        name: "design",
+        description: "Design mode. Creates UI designs and screens using the Stitch MCP server.",
+        model: { providerID: "anthropic", modelID: "claude-sonnet-4-6" },
+        variant: "medium",
+        options: {},
+        prompt: PROMPT_DESIGN,
+        permission: PermissionNext.merge(
+          defaults,
+          PermissionNext.fromConfig({
+            question: "allow",
+            design_exit: "allow",
+            design_enter: "deny",
             test_enter: "deny",
             plan_enter: "deny",
             plan_exit: "deny",

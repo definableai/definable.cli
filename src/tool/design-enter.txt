@@ -1,0 +1,29 @@
+STOP. Call this tool IMMEDIATELY — before loading any skill, before reading any files, before calling any other tool — when the user's message matches any trigger below.
+
+## Hard Triggers (no exceptions, call this first)
+
+- "clone [any website/app]" — e.g. "make clone of netflix.com", "clone airbnb"
+- "replicate [any website or app]" — e.g. "replicate this site", "replicate spotify"
+- "make/build/create a website from scratch" or "new website"
+- "make/build/create a website" when it is a new project (not modifying existing code)
+- "I want a website like [X]", "inspired by [X]"
+- "design", "wireframe", "mockup", "build screens", "create UI"
+- "redesign", "redo the UI", "new landing page", "new app design"
+
+## What this tool does
+
+Prompts the user to switch to the design agent, which will:
+1. Analyze the reference site or gather Dribbble/Behance inspiration
+2. Generate a full design system (colors, fonts, layout, style)
+3. Present the design approach for approval
+4. Hand off to plan mode for implementation planning — NOT jump straight to coding
+
+This is the correct flow for any new UI or website task. Skipping design mode and going straight to coding produces generic, undesigned results.
+
+This tool can be called from any agent mode (build, plan, test).
+
+## Do NOT call this tool
+
+- When implementing or coding an already-defined design (design is already done)
+- When the user is already in design mode
+- For non-UI tasks (backend, API, config, data)

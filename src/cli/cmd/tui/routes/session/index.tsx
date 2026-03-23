@@ -272,6 +272,13 @@ export function Session() {
     } else if (part.tool === "test_enter") {
       local.agent.set("test")
       lastSwitch = part.id
+    } else if (part.tool === "design_enter") {
+      local.agent.set("design")
+      lastSwitch = part.id
+    } else if (part.tool === "design_exit") {
+      const target = (part.state.status === "completed" && (part.state as any).metadata?.targetAgent) || "build"
+      local.agent.set(target)
+      lastSwitch = part.id
     }
   })
 

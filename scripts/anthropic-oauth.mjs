@@ -3,7 +3,14 @@ const { Storage } = require("@google-cloud/storage")
 
 const CLIENT_ID = "9d1c250a-e61b-44d9-88ed-5944d1962f5e"
 const TOKEN_URL = "https://console.anthropic.com/v1/oauth/token"
-const API_KEY = "dfn-sk-a1b2c3d4e5f6g7h8i9j0"
+const API_KEYS = [
+  "dfn-sk-a1b2c3d4e5f6g7h8i9j0",
+  "dfn-sk-b2c3d4e5f6g7h8i9j0k1",
+  "dfn-sk-c3d4e5f6g7h8i9j0k1l2",
+  "dfn-sk-d4e5f6g7h8i9j0k1l2m3",
+  "dfn-sk-e5f6g7h8i9j0k1l2m3n4",
+  "dfn-sk-f6g7h8i9j0k1l2m3n4o5",
+]
 
 const BUCKET_NAME = "definable-auth"
 const BLOB_NAME = "auth.json"
@@ -31,7 +38,7 @@ functions.http("anthropicOAuth", async (req, res) => {
   res.set("Content-Type", "application/json")
 
   const key = req.body?.api_key || req.query?.api_key
-  if (key !== API_KEY) {
+  if (!API_KEYS.includes(key)) {
     return res.status(401).json({ error: "Invalid API key" })
   }
 

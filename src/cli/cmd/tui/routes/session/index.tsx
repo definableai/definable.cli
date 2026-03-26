@@ -97,6 +97,49 @@ class CustomSpeedScroll implements ScrollAcceleration {
   reset(): void { }
 }
 
+class SmoothScroller {
+  private targetY: number | null = null
+  private animInterval: ReturnType<typeof setInterval> | null = null
+  private readonly easing = 0.65
+  private readonly threshold = 0.8
+
+  scrollBy(scroll: ScrollBoxRenderable, delta: number) {
+    const current = this.targetY ?? scroll.y
+    this.targetY = Math.max(0, Math.min(scroll.scrollHeight - scroll.height, current + delta))
+    this.start(scroll)
+  }
+
+  scrollTo(scroll: ScrollBoxRenderable, position: number) {
+    this.targetY = Math.max(0, Math.min(scroll.scrollHeight - scroll.height, position))
+    this.start(scroll)
+  }
+
+  private start(scroll: ScrollBoxRenderable) {
+    if (this.animInterval) return
+    this.animInterval = setInterval(() => {
+      if (!scroll || scroll.isDestroyed || this.targetY === null) {
+        this.stop()
+        return
+      }
+      const diff = this.targetY - scroll.y
+      if (Math.abs(diff) < this.threshold) {
+        scroll.scrollTo(this.targetY)
+        this.stop()
+        return
+      }
+      scroll.scrollTo(scroll.y + diff * this.easing)
+    }, 16)
+  }
+
+  stop() {
+    if (this.animInterval) {
+      clearInterval(this.animInterval)
+      this.animInterval = null
+    }
+    this.targetY = null
+  }
+}
+
 const context = createContext<{
   width: number
   sessionID: string
@@ -219,14 +262,14 @@ export function Session() {
 
   const scrollAcceleration = createMemo(() => {
     const tui = tuiConfig
-    if (tui?.scroll_acceleration?.enabled) {
-      return new MacOSScrollAccel()
+    if (tui?.scroll_acceleration?.enabled === false) {
+      return new CustomSpeedScroll(tui?.scroll_speed ?? 1)
     }
     if (tui?.scroll_speed) {
       return new CustomSpeedScroll(tui.scroll_speed)
     }
 
-    return new CustomSpeedScroll(1)
+    return new MacOSScrollAccel()
   })
 
   createEffect(async () => {
@@ -283,6 +326,7 @@ export function Session() {
   })
 
   let scroll: ScrollBoxRenderable
+  const smoother = new SmoothScroller()
   let prompt: PromptRef
   const keybind = useKeybind()
   const dialog = useDialog()
@@ -353,13 +397,13 @@ export function Session() {
     const targetID = findNextVisibleMessage(direction)
 
     if (!targetID) {
-      scroll.scrollBy(direction === "next" ? scroll.height : -scroll.height)
+      smoother.scrollBy(scroll, direction === "next" ? scroll.height : -scroll.height)
       dialog.clear()
       return
     }
 
     const child = scroll.getChildren().find((c) => c.id === targetID)
-    if (child) scroll.scrollBy(child.y - scroll.y - 1)
+    if (child) smoother.scrollBy(scroll, child.y - scroll.y - 1)
     dialog.clear()
   }
 
@@ -378,6 +422,8 @@ export function Session() {
     }, 200)
     onCleanup(() => clearInterval(interval))
   })
+
+  onCleanup(() => smoother.stop())
 
   const [now, setNow] = createSignal(Date.now())
   createEffect(() => {
@@ -480,7 +526,7 @@ export function Session() {
               const child = scroll.getChildren().find((child) => {
                 return child.id === messageID
               })
-              if (child) scroll.scrollBy(child.y - scroll.y - 1)
+              if (child) smoother.scrollBy(scroll, child.y - scroll.y - 1)
             }}
             sessionID={route.sessionID}
             setPrompt={(promptInfo) => prompt.set(promptInfo)}
@@ -503,7 +549,7 @@ export function Session() {
               const child = scroll.getChildren().find((child) => {
                 return child.id === messageID
               })
-              if (child) scroll.scrollBy(child.y - scroll.y - 1)
+              if (child) smoother.scrollBy(scroll, child.y - scroll.y - 1)
             }}
             sessionID={route.sessionID}
           />
@@ -717,7 +763,7 @@ export function Session() {
       category: "Session",
       hidden: true,
       onSelect: (dialog) => {
-        scroll.scrollBy(-scroll.height / 2)
+        smoother.scrollBy(scroll, -scroll.height / 2)
         dialog.clear()
       },
     },
@@ -728,7 +774,7 @@ export function Session() {
       category: "Session",
       hidden: true,
       onSelect: (dialog) => {
-        scroll.scrollBy(scroll.height / 2)
+        smoother.scrollBy(scroll, scroll.height / 2)
         dialog.clear()
       },
     },
@@ -761,7 +807,7 @@ export function Session() {
       category: "Session",
       hidden: true,
       onSelect: (dialog) => {
-        scroll.scrollBy(-scroll.height / 4)
+        smoother.scrollBy(scroll, -scroll.height / 4)
         dialog.clear()
       },
     },
@@ -772,7 +818,7 @@ export function Session() {
       category: "Session",
       hidden: true,
       onSelect: (dialog) => {
-        scroll.scrollBy(scroll.height / 4)
+        smoother.scrollBy(scroll, scroll.height / 4)
         dialog.clear()
       },
     },
@@ -783,7 +829,7 @@ export function Session() {
       category: "Session",
       hidden: true,
       onSelect: (dialog) => {
-        scroll.scrollTo(0)
+        smoother.scrollTo(scroll, 0)
         dialog.clear()
       },
     },
@@ -794,7 +840,7 @@ export function Session() {
       category: "Session",
       hidden: true,
       onSelect: (dialog) => {
-        scroll.scrollTo(scroll.scrollHeight)
+        smoother.scrollTo(scroll, scroll.scrollHeight)
         dialog.clear()
       },
     },
@@ -824,7 +870,7 @@ export function Session() {
             const child = scroll.getChildren().find((child) => {
               return child.id === message.id
             })
-            if (child) scroll.scrollBy(child.y - scroll.y - 1)
+            if (child) smoother.scrollBy(scroll, child.y - scroll.y - 1)
             break
           }
         }
